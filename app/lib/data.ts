@@ -219,6 +219,84 @@ export async function fetchOfficeById(id: string) {
   }
 }
 
+export async function fetchBookingsPages(query: string) {
+  try {
+    const client = await clientPromise;
+    const db = client.db("uzma");
+    const collection = db.collection("bookings");
+
+    const count = await collection.countDocuments({
+      $or: [
+        { customer: { $regex: query, $options: "i" } },
+        { vehicle: { $regex: query, $options: "i" } },
+        { driver: { $regex: query, $options: "i" } },
+        { pickup_address: { $regex: query, $options: "i" } },
+        { dropoff_address: { $regex: query, $options: "i" } },
+        { payment_status: { $regex: query, $options: "i" } },
+        { booking_status: { $regex: query, $options: "i" } },
+        { booking_type: { $regex: query, $options: "i" } },
+        { note: { $regex: query, $options: "i" } },
+      ],
+    });
+
+    const totalPages = Math.ceil(count / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch total number of bookings.");
+  }
+}
+
+export async function fetchFilteredBookings(query: string, currentPage: number) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  try {
+    const client = await clientPromise;
+    const db = client.db("uzma");
+    const collection = db.collection("bookings");
+
+    const bookings = await collection
+      .find({
+        $or: [
+          { customer: { $regex: query, $options: "i" } },
+          { vehicle: { $regex: query, $options: "i" } },
+          { driver: { $regex: query, $options: "i" } },
+          { pickup_address: { $regex: query, $options: "i" } },
+          { dropoff_address: { $regex: query, $options: "i" } },
+          { payment_status: { $regex: query, $options: "i" } },
+          { booking_status: { $regex: query, $options: "i" } },
+          { booking_type: { $regex: query, $options: "i" } },
+          { note: { $regex: query, $options: "i" } },
+        ],
+      })
+      .sort({ pickup_dt: -1 }) // newest bookings first
+      .skip(offset)
+      .limit(ITEMS_PER_PAGE)
+      .toArray();
+
+    return bookings.map(booking => ({
+      id: booking._id.toString(), // ObjectId to string
+      customer: booking.customer,
+      vehicle: booking.vehicle,
+      driver: booking.driver,
+      pickup_address: booking.pickup_address,
+      dropoff_address: booking.dropoff_address,
+      pickup_dt: booking.pickup_dt,
+      dropoff_dt: booking.dropoff_dt,
+      passenger_num: booking.passenger_num,
+      payment_status: booking.payment_status,
+      booking_status: booking.booking_status,
+      booking_type: booking.booking_type,
+      note: booking.note,
+      
+      _id: undefined, // optional: hide the original _id if you want clean objects
+    }));
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch bookings.");
+  }
+}
+
 
 
 

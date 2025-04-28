@@ -16,6 +16,7 @@ export async function getUser(email: string): Promise<User | undefined> {
         const fetched_user = await usersCollection.findOne({ email });
         if(!fetched_user) {
             throw new Error('User not found.');
+           
         }
         const user = {
             name: fetched_user.name,
@@ -46,9 +47,12 @@ export const { auth, signIn, signOut } = NextAuth({
                     .object({ email: z.string().email(), password: z.string().min(6) })
                     .safeParse(credentials);
 
+                   
+
                 if (parsedCredentials.success) {
                     const { email, password } = parsedCredentials.data;
                     const user = await getUser(email);
+                    
                     if (!user) return null;
 
                     const passwordsMatch = await bcrypt.compare(password, user.password);
