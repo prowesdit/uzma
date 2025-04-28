@@ -13,6 +13,9 @@ export async function insertVehicle(vehicleData: {
   carryingCapacity: number;
   fitnessExpirationDate: string;
   licenseExpirationDate: string;
+  initialMileage: number;
+  averageMileage: number;
+  inService: boolean;
   assetFileUrl?: string;
 }) {
   {

@@ -1,6 +1,6 @@
 "use client";
 
-import { PaperClipIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import { XCircleIcon } from "@heroicons/react/24/outline";
 import React, { useState } from "react";
 
 const VehiclesEntry = () => {
@@ -17,6 +17,9 @@ const VehiclesEntry = () => {
     carryingCapacity: "",
     fitnessExpirationDate: "",
     licenseExpirationDate: "",
+    initialMileage: "",
+    averageMileage: "",
+    inService: false,
     assetFiles: [] as File[], // field for the uploaded file
   });
 
@@ -24,6 +27,9 @@ const VehiclesEntry = () => {
     { name: string; preview: string | null }[]
   >([]); // Array to store file previews
   // const [fileName, setFileName] = useState<string | null>(null); // For file name
+  const [fileInputRef, setFileInputRef] = useState<HTMLInputElement | null>(
+    null
+  );
   const [message, setMessage] = useState("");
 
   const handleChange = (
@@ -91,6 +97,8 @@ const VehiclesEntry = () => {
       const result = await response.json();
       if (response.ok) {
         setMessage(result.message);
+
+        // Clear form fields
         setFormData({
           model: "",
           registrationNumber: "",
@@ -104,9 +112,20 @@ const VehiclesEntry = () => {
           carryingCapacity: "",
           fitnessExpirationDate: "",
           licenseExpirationDate: "",
+          initialMileage: "",
+          averageMileage: "",
+          inService: false,
           assetFiles: [],
         });
+        // Clear file input field
+        if (fileInputRef) {
+          fileInputRef.value = ""; // Clear the file input field
+        }
         setFilePreviews([]); // Clear file previews after successful submission
+        // Vanish success message after 2-3 seconds
+        setTimeout(() => {
+          setMessage("");
+        }, 3000);
       } else {
         setMessage(result.message || "Failed to add vehicle.");
       }
@@ -127,9 +146,9 @@ const VehiclesEntry = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="flex flex-col items-center p-6">
       <h1 className="text-2xl font-bold mb-4">Vehicle Entry Form</h1>
-      <form onSubmit={handleSubmit} className="space-y-4 w-2/3">
+      <form onSubmit={handleSubmit} className="  space-y-4 w-2/3">
         {/* //model */}
         <div>
           <label className="block text-sm font-medium">Model</label>
@@ -284,6 +303,50 @@ const VehiclesEntry = () => {
           />
         </div>
 
+        {/* Initial Mileage / Litre */}
+        <div>
+          <label className="block text-sm font-medium">
+            Initial Mileage / Litre
+          </label>
+          <input
+            type="number"
+            name="initialMileage"
+            value={formData.initialMileage}
+            onChange={handleChange}
+            required
+            className="w-full rounded-md border-gray-300"
+          />
+        </div>
+
+        {/* Average Mileage / Litre */}
+        <div>
+          <label className="block text-sm font-medium">
+            Average Mileage / Litre
+          </label>
+          <input
+            type="number"
+            name="averageMileage"
+            value={formData.averageMileage}
+            onChange={handleChange}
+            required
+            className="w-full rounded-md border-gray-300"
+          />
+        </div>
+
+        {/* In Service? */}
+        <div className="flex items-center space-x-2">
+          <label className="block text-sm font-medium">In Service?</label>
+          <input
+            type="checkbox"
+            name="inService"
+            checked={formData.inService}
+            onChange={(e) =>
+              setFormData({ ...formData, inService: e.target.checked })
+            }
+            className="h-5 w-5 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+        </div>
+        {/* Upload Vehicles Document */}
         <div className="mt-2">
           <label htmlFor="assetFiles" className="block text-sm font-medium">
             Upload Vehicles Document
@@ -295,6 +358,7 @@ const VehiclesEntry = () => {
             accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
             multiple
             onChange={handleFileChange}
+            ref={(ref) => setFileInputRef(ref)} // Set the file input reference
             className="flex items-center space-x-2"
           />
         </div>
@@ -340,7 +404,7 @@ const VehiclesEntry = () => {
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md"
         >
-          Submit
+          Add Vehicle
         </button>
       </form>
       {message && <p className="mt-4 text-green-600">{message}</p>}
