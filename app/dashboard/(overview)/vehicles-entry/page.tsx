@@ -1,9 +1,16 @@
 "use client";
 
 import { XCircleIcon } from "@heroicons/react/24/outline";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 const VehiclesEntry = () => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const mode = searchParams.get("mode");
+  const buttonText = mode === "edit" ? "Update Vehicle" : "Add Vehicle";
+
+  const vehicleId = searchParams.get("id");
+
   const [formData, setFormData] = useState({
     model: "",
     registrationNumber: "",
@@ -22,6 +29,27 @@ const VehiclesEntry = () => {
     inService: false,
     assetFiles: [] as File[], // field for the uploaded file
   });
+
+  // Fetch vehicle data if an ID is provided
+
+  useEffect(() => {
+    if (vehicleId) {
+      const fetchVehicle = async () => {
+        try {
+          const response = await fetch(`/api/vehicles/${vehicleId}`);
+          if (!response.ok) {
+            throw new Error("Failed to fetch vehicle");
+          }
+          const data = await response.json();
+          setFormData(data);
+        } catch (error) {
+          console.error("Error fetching vehicle:", error);
+        }
+      };
+
+      fetchVehicle();
+    }
+  }, [vehicleId]);
 
   const [filePreviews, setFilePreviews] = useState<
     { name: string; preview: string | null }[]
@@ -131,6 +159,53 @@ const VehiclesEntry = () => {
       }
     } catch (error) {
       console.error("Error submitting form:", error);
+      setMessage("An error occurred. Please try again.");
+    }
+    //update vehicle data
+    try {
+      const response = await fetch(`/api/vehicles/${vehicleId}`, {
+        method: "PUT", // Use PUT for updating the vehicle
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setMessage("Vehicle updated successfully!");
+        window.parent.postMessage(
+          { action: "closeModal" },
+          window.location.origin
+        ); // Close the modal after successful update
+        // Clear form fields
+        setFormData({
+          model: "",
+          registrationNumber: "",
+          type: "",
+          manufacturingYear: "",
+          engineNumber: "",
+          chassisNumber: "",
+          fuelType: "",
+          ownerName: "",
+          ownerAddress: "",
+          carryingCapacity: "",
+          fitnessExpirationDate: "",
+          licenseExpirationDate: "",
+          initialMileage: "",
+          averageMileage: "",
+          inService: false,
+          assetFiles: [],
+        });
+        // Clear file input field
+
+        if (fileInputRef) {
+          fileInputRef.value = ""; // Clear the file input field
+        }
+        setFilePreviews([]); // Clear file previews after successful submission
+      } else {
+        setMessage(result.message || "Failed to update vehicle.");
+      }
+    } catch (error) {
+      console.error("Error updating vehicle:", error);
       setMessage("An error occurred. Please try again.");
     }
   };
@@ -335,7 +410,7 @@ const VehiclesEntry = () => {
 
         {/* In Service? */}
         <div className="flex items-center space-x-2">
-          <label className="block text-sm font-medium">In Service?</label>
+          <label className="block text-sm font-medium">onTrip?</label>
           <input
             type="checkbox"
             name="inService"
@@ -400,12 +475,14 @@ const VehiclesEntry = () => {
             ))}
           </div>
         )}
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded-md"
-        >
-          Add Vehicle
-        </button>
+        <div>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md"
+          >
+            {buttonText}
+          </button>
+        </div>
       </form>
       {message && <p className="mt-4 text-green-600">{message}</p>}
     </div>
