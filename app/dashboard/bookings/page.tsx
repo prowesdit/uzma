@@ -6,6 +6,7 @@ import { Metadata } from "next";
 import { CreateBooking } from "@/app/ui/bookings/buttons";
 import BookingsTable from "@/app/ui/bookings/table";
 import BookingPagination from "@/app/ui/bookings/pagination";
+import BookingsTableServer from "@/app/ui/bookings/table-server";
 
 export const metadata: Metadata = {
   title: "Bookings",
@@ -20,6 +21,7 @@ export default async function Page(props: {
   const searchParams = await props.searchParams;
   const query = searchParams?.query || "";
   const currentPage = Number(searchParams?.page) || 1;
+  console.log(process.env.MONGODB_URI);
 
   return (
     <div className="w-full">
@@ -31,7 +33,7 @@ export default async function Page(props: {
         <CreateBooking />
       </div>
       <Suspense key={query + currentPage} fallback={<BranchesTableSkeleton />}>
-        <BookingsTable query={query} currentPage={currentPage} />
+        <BookingsTableServer query={query} currentPage={currentPage} />
       </Suspense>
       <div className="mt-5 flex w-full justify-center">
         <Suspense fallback={<PaginationSkeleton />}>

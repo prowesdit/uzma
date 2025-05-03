@@ -39,6 +39,7 @@ export default function CreateBookingForm() {
   // state.message
   useEffect(() => {
     if (state.message === "Booking created successfully.") {
+      setIsLoading(false)
       //   window.location.href = "/dashboard/bookings"; // Redirect on the client side
     } else if (state.message !== null) {
       console.error(state.message);
@@ -290,7 +291,7 @@ export default function CreateBookingForm() {
               htmlFor="booking_type"
               className="mb-2 block text-sm font-medium"
             >
-              Choose Payment Status
+              Choose Booking Type
             </label>
 
             <div className="relative">
@@ -327,8 +328,8 @@ export default function CreateBookingForm() {
                 <div className="relative">
                   <input
                     type="date"
-                    id="return_pickup_dt-dt"
-                    name="return_pickup_dt-dt"
+                    id="return_pickup_dt"
+                    name="return_pickup_dt"
                     className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                     aria-describedby="return_pickup_dt-error"
                   />

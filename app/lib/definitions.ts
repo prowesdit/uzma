@@ -86,7 +86,23 @@ export type OfficeForm = {
   contact: string;
 };
 
-
+export type BookingForm = {
+  id: string;
+  customer: string;
+    vehicle: string;
+    driver: string;
+    pickup_address: string;
+    dropoff_address: string;
+    pickup_dt: string;
+    dropoff_dt: string;
+    return_pickup_dt: string;
+    return_dropoff_dt: string;
+    passenger_num: string;
+    payment_status: string;
+    booking_status: string;
+    booking_type: string;
+    note: string;
+};
 
 
 

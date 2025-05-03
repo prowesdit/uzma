@@ -283,6 +283,8 @@ export async function fetchFilteredBookings(query: string, currentPage: number) 
       dropoff_address: booking.dropoff_address,
       pickup_dt: booking.pickup_dt,
       dropoff_dt: booking.dropoff_dt,
+      return_pickup_dt: booking.return_pickup_dt,
+      return_dropoff_dt: booking.return_dropoff_dt,
       passenger_num: booking.passenger_num,
       payment_status: booking.payment_status,
       booking_status: booking.booking_status,
@@ -294,6 +296,42 @@ export async function fetchFilteredBookings(query: string, currentPage: number) 
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to fetch bookings.");
+  }
+}
+
+export async function fetchBookingById(id: string) {
+  try {
+    const client = await clientPromise;
+    const db = client.db("uzma");
+    const collection = db.collection("bookings");
+
+    const fetched_booking = await collection.findOne({ _id: new ObjectId(id) });
+
+    if (!fetched_booking) {
+      throw new Error("Booking not found.");
+    }
+
+    const booking = {
+      customer: fetched_booking.customer,
+      vehicle: fetched_booking.vehicle,
+      driver: fetched_booking.driver,
+      pickup_address: fetched_booking.pickup_address,
+      dropoff_address: fetched_booking.dropoff_address,
+      pickup_dt: fetched_booking.pickup_dt,
+      dropoff_dt: fetched_booking.dropoff_dt,
+      passenger_num: fetched_booking.passenger_num,
+      payment_status: fetched_booking.payment_status,
+      booking_status: fetched_booking.booking_status,
+      booking_type: fetched_booking.booking_type,
+      note: fetched_booking.note,
+      id: fetched_booking._id.toString(), // Convert ObjectId to string
+      _id: undefined, // Optionally remove the original `_id` field
+    };
+
+    return booking;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch booking.");
   }
 }
 
