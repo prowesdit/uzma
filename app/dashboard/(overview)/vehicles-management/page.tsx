@@ -4,6 +4,7 @@ import {
   Cog6ToothIcon,
 } from "@heroicons/react/24/solid";
 import React, { useEffect, useState } from "react";
+import VehiclesEntry from "../vehicles-entry/page";
 // import { useRouter } from "next/router";
 // Define the Vehicle type
 interface Vehicle {
@@ -36,8 +37,30 @@ const VehiclesManagement = () => {
     fetchVehicles();
   }, []);
 
+  //Fetch vehicle by ID when selectedVehicle changes
+  useEffect(() => {
+    const fetchVehicleById = async () => {
+      if (!selectedVehicle) return;
+
+      try {
+        console.log("Fetching vehicle by ID:", selectedVehicle._id);
+        const response = await fetch(`/api/vehicles/${selectedVehicle._id}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch vehicle");
+        }
+        const vehicleData: Vehicle = await response.json();
+        console.log("Fetched vehicle data:", vehicleData);
+        setSelectedVehicle(vehicleData); // Update the selected vehicle with fresh data
+      } catch (error) {
+        console.error("Error fetching vehicle by ID:", error);
+      }
+    };
+
+    fetchVehicleById();
+  }, [selectedVehicle]);
+
   //Handle vehicle edit
-  const handleEditVehicle = (vehicle: Vehicle) => {
+  const handleEditVehicle = (vehicle: any) => {
     setSelectedVehicle(vehicle);
     setIsModalOpen(true);
   };
@@ -179,6 +202,7 @@ const VehiclesManagement = () => {
                 );
               }}
             ></iframe>
+            {/* <VehiclesEntry selectedVehicle={selectedVehicle} /> */}
           </div>
         </div>
       )}

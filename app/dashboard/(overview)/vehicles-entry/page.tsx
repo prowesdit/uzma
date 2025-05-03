@@ -4,12 +4,31 @@ import { XCircleIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-const VehiclesEntry = () => {
-  const searchParams = new URLSearchParams(window.location.search);
-  const mode = searchParams.get("mode");
+interface Vehicle {
+  _id: string;
+  model: string;
+  registrationNumber: string;
+  type: string;
+  inService: boolean;
+  fuelType: string;
+}
+
+const VehiclesEntry = (selectedVehicle: Vehicle) => {
+  const [searchParams, setSearchParams] = useState<URLSearchParams | null>(
+    null
+  );
+  useEffect(() => {
+    // Access the window object safely on the client side
+    if (typeof window !== "undefined") {
+      setSearchParams(new URLSearchParams(window.location.search));
+    }
+  }, []);
+
+  const mode = searchParams?.get("mode");
   const buttonText = mode === "edit" ? "Update Vehicle" : "Add Vehicle";
 
-  const vehicleId = searchParams.get("id");
+  const vehicleId = searchParams?.get("id");
+  console.log(vehicleId);
 
   const [formData, setFormData] = useState({
     model: "",
@@ -41,6 +60,7 @@ const VehiclesEntry = () => {
             throw new Error("Failed to fetch vehicle");
           }
           const data = await response.json();
+          console.log(data);
           setFormData(data);
         } catch (error) {
           console.error("Error fetching vehicle:", error);
@@ -244,7 +264,8 @@ const VehiclesEntry = () => {
           <input
             type="text"
             name="registrationNumber"
-            value={formData.registrationNumber}
+            // value={formData.registrationNumber}
+            defaultValue={selectedVehicle.registrationNumber}
             onChange={handleChange}
             required
             className="w-full rounded-md border-gray-300"
@@ -305,7 +326,8 @@ const VehiclesEntry = () => {
           <input
             type="text"
             name="fuelType"
-            value={formData.fuelType}
+            // value={formData.fuelType}
+            defaultValue={selectedVehicle.fuelType}
             onChange={handleChange}
             required
             className="w-full rounded-md border-gray-300"

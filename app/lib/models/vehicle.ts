@@ -57,11 +57,21 @@ export async function getVehicles() {
 
 export async function getVehicle(id: string) {
   try {
+    console.log("Before Converting ID to ObjectId:", id); // Log the ID before conversion
+    // const objectId = new ObjectId(id);
+    // console.log("After Converting ID to ObjectId:", objectId); // Log the converted ID
     const client = await clientPromise;
     const db = client.db("uzma");
     const collection = db.collection("vehicles");
 
-    const vehicle = await collection.findOne({ _id: new ObjectId(id) });
+    // Check if the ID is a valid ObjectId
+    const objectId = ObjectId.isValid(id)
+      ? { _id: new ObjectId(id) }
+      : { _id: id }; // Fallback to string-based query
+
+    const vehicle = await collection.findOne({ _id: objectId });
+    console.log("Database query result:", vehicle); // Log the database result
+
     return vehicle;
   } catch (error) {
     console.error("Error fetching vehicle:", error);
@@ -69,7 +79,7 @@ export async function getVehicle(id: string) {
   }
 }
 
-export async function updateVehicleById(id: string, vehicleData: any) {
+export async function updateVehicle(id: string, vehicleData: any) {
   try {
     const client = await clientPromise;
     const db = client.db("uzma");
@@ -79,9 +89,9 @@ export async function updateVehicleById(id: string, vehicleData: any) {
 
     const result = await collection.updateOne(
       { _id: new ObjectId(id) },
-      { $set: { ...vehicleData, updatedAt: new Date() } }
+      { $set: { ...updateData, updatedAt: new Date() } }
     );
-
+    console.log("Update result:", result); // Log the update result
     return { success: result.modifiedCount > 0 };
   } catch (error) {
     console.error("Error updating vehicle:", error);
@@ -90,13 +100,13 @@ export async function updateVehicleById(id: string, vehicleData: any) {
 }
 
 // Function to delete a vehicle by ID
-export async function deleteVehicle(id: string) {
+export async function deleteVehicle(id: ObjectId) {
   try {
     const client = await clientPromise;
     const db = client.db("uzma");
     const collection = db.collection("vehicles");
-
-    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+    console.log("Deleting vehicle with ID:", id); // Log the ID being deleted
+    const result = await collection.deleteOne({ _id: id });
     return { success: result.deletedCount > 0 };
   } catch (error) {
     console.error("Error deleting vehicle:", error);

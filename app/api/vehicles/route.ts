@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   createVehicle,
-  updateVehicle,
+  getAllVehicles,
 } from "@/app/lib/controller/vehicleController";
 import cloudinary from "@/app/lib/cloudinary.config";
 import { PassThrough } from "stream";
@@ -82,34 +82,8 @@ export async function POST(req: Request) {
   }
 }
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const body = await req.json();
-    const result = await updateVehicle(params.id, body);
-    if (!result.success) {
-      return NextResponse.json(
-        { message: "error" in result ? result.error : "Unknown error" },
-        { status: 400 }
-      );
-    }
-    return NextResponse.json(
-      { message: "Vehicle updated successfully!" },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error updating vehicle:", error);
-    return NextResponse.json(
-      { message: "Failed to update vehicle." },
-      { status: 500 }
-    );
-  }
-}
-
 //Fetching all vehicles
-/*export async function GET() {
+export async function GET() {
   try {
     const vehicles = await getAllVehicles();
     return NextResponse.json(vehicles, { status: 200 });
@@ -120,4 +94,4 @@ export async function PUT(
       { status: 500 }
     );
   }
-}*/
+}

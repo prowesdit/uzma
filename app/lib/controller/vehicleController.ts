@@ -2,9 +2,11 @@ import {
   insertVehicle,
   getVehicles,
   getVehicle,
-  updateVehicleById,
   deleteVehicle,
+  updateVehicle,
 } from "@/app/lib/models/vehicle";
+import { ObjectId } from "mongodb";
+import { NextResponse } from "next/server";
 
 export async function createVehicle(vehicleData: {
   model: string;
@@ -79,31 +81,45 @@ export async function getAllVehicles() {
     throw new Error("Failed to fetch vehicles.");
   }
 }
+// Function to get a vehicle by ID
+// This function is used to fetch a vehicle by its ID from the database
+// export async function getVehicleById(id: string) {
+//   try {
+//     console.log("Fetching vehicle with ID:", id); // Log the ID being fetched
+//     const vehicle = await getVehicle(id);
+//     if (!vehicle) {
+//       console.error("Vehicle not found for ID:", id); // Log missing vehicle
+//       throw new Error("Vehicle not found.");
+//     }
+//     return vehicle;
+//   } catch (error) {
+//     console.error("Error in getVehicleById controller:", error);
+//     throw new Error("Failed to fetch vehicle.");
+//   }
+// }
 
-export async function getVehicleById(id: string) {
-  try {
-    const vehicle = await getVehicle(id);
-    return vehicle;
-  } catch (error) {
-    console.error("Error in getVehicleById controller:", error);
-    throw new Error("Failed to fetch vehicle.");
-  }
-}
-
-export async function updateVehicle(id: string, vehicleData: any) {
-  try {
-    const result = await updateVehicleById(id, vehicleData);
-    return result;
-  } catch (error) {
-    console.error("Error in updateVehicle controller:", error);
-    return { success: false, error: "Failed to update vehicle." };
-  }
-}
+// export async function updateVehicleById(id: string, vehicleData: any) {
+//   try {
+//     console.log("Updating vehicle with ID:", id);
+//     // const objectId = new ObjectId(id);
+//     const result = await updateVehicleById(id, vehicleData);
+//     if (!result) {
+//       console.error("No vehicle was updated for ID:", id);
+//       return { success: false, error: "Vehicle not found or no changes made." };
+//     }
+//     return { success: true, message: "Vehicle updated successfully." };
+//   } catch (error) {
+//     console.error("Error in updateVehicle controller:", error);
+//     return { success: false, error: "Failed to update vehicle." };
+//   }
+// }
 
 // Function to delete a vehicle by ID
 export async function deleteVehicleById(id: string) {
   try {
-    const result = await deleteVehicle(id);
+    const objectId = new ObjectId(id); // Convert to ObjectId
+
+    const result = await deleteVehicle(objectId);
     return result;
   } catch (error) {
     console.error("Error in deleteVehicleById controller:", error);
@@ -112,41 +128,69 @@ export async function deleteVehicleById(id: string) {
 }
 
 // Function to get a vehicle by ID
-// export async function getVehicleById(vehicleId: string) {
-//   try {
-//     const vehicle = await getVehicles(vehicleId);
-//     return vehicle;
-//   } catch (error) {
-//     console.error("Error in getVehicleById controller:", error);
-//     throw new Error("Failed to fetch vehicle.");
-//   }
-// }
-// // Function to update a vehicle by ID
-// export async function updateVehicleById(
-//   vehicleId: string,
-//   vehicleData: {
-//     model?: string;
-//     registrationNumber?: string;
-//     type?: string;
-//     manufacturingYear?: number;
-//     engineNumber?: string;
-//     chassisNumber?: string;
-//     fuelType?: string;
-//     ownerName?: string;
-//     ownerAddress?: string;
-//     carryingCapacity?: number;
-//     fitnessExpirationDate?: string;
-//     licenseExpirationDate?: string;
-//     initialMileage?: number;
-//     averageMileage?: number;
-//     inService?: boolean;
-//   }
-// ) {
-//   try {
-//     const result = await insertVehicle(vehicleId, vehicleData);
-//     return result;
-//   } catch (error) {
-//     console.error("Error in updateVehicleById controller:", error);
-//     throw new Error("Failed to update vehicle.");
-//   }
-// }
+export async function getVehicleById(vehicleId: string) {
+  try {
+    if (!ObjectId.isValid(vehicleId)) {
+      console.error("Invalid ID format:", vehicleId);
+      throw new Error("Invalid ID format.");
+    }
+    const vehicle = await getVehicle(vehicleId);
+    if (!vehicle) {
+      console.error("Vehicle not found for ID:", vehicleId);
+      throw new Error("Vehicle not found.");
+    }
+    console.log("Fetched vehicle:", vehicle); // Log the fetched vehicle
+    return vehicle;
+  } catch (error) {
+    console.error("Error in getVehicleById controller:", error);
+    throw new Error("Failed to fetch vehicle.");
+  }
+}
+// Function to update a vehicle by ID
+export async function updateVehicleById(
+  vehicleId: string,
+  vehicleData: {
+    model?: string;
+    registrationNumber?: string;
+    type?: string;
+    manufacturingYear?: number;
+    engineNumber?: string;
+    chassisNumber?: string;
+    fuelType?: string;
+    ownerName?: string;
+    ownerAddress?: string;
+    carryingCapacity?: number;
+    fitnessExpirationDate?: string;
+    licenseExpirationDate?: string;
+    initialMileage?: number;
+    averageMileage?: number;
+    inService?: boolean;
+  }
+) {
+  try {
+    // Provide default values for missing properties
+    const completeVehicleData = {
+      model: vehicleData.model || "",
+      registrationNumber: vehicleData.registrationNumber || "",
+      type: vehicleData.type || "",
+      manufacturingYear: vehicleData.manufacturingYear || 0,
+      engineNumber: vehicleData.engineNumber || "",
+      chassisNumber: vehicleData.chassisNumber || "",
+      fuelType: vehicleData.fuelType || "",
+      ownerName: vehicleData.ownerName || "",
+      ownerAddress: vehicleData.ownerAddress || "",
+      carryingCapacity: vehicleData.carryingCapacity || 0,
+      fitnessExpirationDate: vehicleData.fitnessExpirationDate || "",
+      licenseExpirationDate: vehicleData.licenseExpirationDate || "",
+      initialMileage: vehicleData.initialMileage || 0,
+      averageMileage: vehicleData.averageMileage || 0,
+      inService: vehicleData.inService || false,
+    };
+
+    const result = await updateVehicle(vehicleId, completeVehicleData); // Pass the complete object
+    return result;
+  } catch (error) {
+    console.error("Error updating vehicle:", error);
+    throw new Error("Failed to update vehicle.");
+  }
+}
