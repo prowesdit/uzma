@@ -130,20 +130,28 @@ export async function deleteVehicleById(id: string) {
 // Function to get a vehicle by ID
 export async function getVehicleById(vehicleId: string) {
   try {
+    // console.log("Before Converting ID to ObjectId:", vehicleId);
+
     if (!ObjectId.isValid(vehicleId)) {
       console.error("Invalid ID format:", vehicleId);
       throw new Error("Invalid ID format.");
     }
+
+    // Convert to ObjectId before querying
+    const objId = new ObjectId(vehicleId);
+    // console.log("After Converting ID to ObjectId:", objId);
+
     const vehicle = await getVehicle(vehicleId);
     if (!vehicle) {
       console.error("Vehicle not found for ID:", vehicleId);
       throw new Error("Vehicle not found.");
     }
-    console.log("Fetched vehicle:", vehicle); // Log the fetched vehicle
+
+    // console.log("Fetched vehicle:", vehicle);
     return vehicle;
   } catch (error) {
     console.error("Error in getVehicleById controller:", error);
-    throw new Error("Failed to fetch vehicle.");
+    throw error; // Propagate the original error
   }
 }
 // Function to update a vehicle by ID
@@ -165,6 +173,7 @@ export async function updateVehicleById(
     initialMileage?: number;
     averageMileage?: number;
     inService?: boolean;
+    assetFileUrl?: string;
   }
 ) {
   try {
@@ -185,12 +194,17 @@ export async function updateVehicleById(
       initialMileage: vehicleData.initialMileage || 0,
       averageMileage: vehicleData.averageMileage || 0,
       inService: vehicleData.inService || false,
+      assetFileUrl: vehicleData.assetFileUrl || "",
     };
 
     const result = await updateVehicle(vehicleId, completeVehicleData); // Pass the complete object
-    return result;
+    return { success: true, data: result };
   } catch (error) {
-    console.error("Error updating vehicle:", error);
-    throw new Error("Failed to update vehicle.");
+    console.error("Controller : Error updating vehicle:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to update vehicle",
+    };
   }
 }

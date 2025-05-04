@@ -5,18 +5,32 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 interface Vehicle {
-  _id: string;
+  // _id: string;
   model: string;
   registrationNumber: string;
   type: string;
-  inService: boolean;
+  manufacturingYear: string | number;
+  engineNumber: string;
+  chassisNumber: string;
   fuelType: string;
+  ownerName: string;
+  ownerAddress: string;
+  carryingCapacity: string | number;
+  fitnessExpirationDate: string;
+  licenseExpirationDate: string;
+  initialMileage: string | number;
+  averageMileage: string | number;
+  inService: boolean;
+  assetFiles?: File[];
+  assetFileUrl?: string;
 }
 
 const VehiclesEntry = (selectedVehicle: Vehicle) => {
   const [searchParams, setSearchParams] = useState<URLSearchParams | null>(
     null
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
   useEffect(() => {
     // Access the window object safely on the client side
     if (typeof window !== "undefined") {
@@ -30,21 +44,22 @@ const VehiclesEntry = (selectedVehicle: Vehicle) => {
   const vehicleId = searchParams?.get("id");
   console.log(vehicleId);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Vehicle>({
+    // _id: "", // Default value for _id
     model: "",
     registrationNumber: "",
     type: "",
-    manufacturingYear: "",
+    manufacturingYear: 0,
     engineNumber: "",
     chassisNumber: "",
     fuelType: "",
     ownerName: "",
     ownerAddress: "",
-    carryingCapacity: "",
+    carryingCapacity: 0,
     fitnessExpirationDate: "",
     licenseExpirationDate: "",
-    initialMileage: "",
-    averageMileage: "",
+    initialMileage: 0,
+    averageMileage: 0,
     inService: false,
     assetFiles: [] as File[], // field for the uploaded file
   });
@@ -61,7 +76,12 @@ const VehiclesEntry = (selectedVehicle: Vehicle) => {
           }
           const data = await response.json();
           console.log(data);
-          setFormData(data);
+          // Convert date strings to proper format for input fields
+          setFormData({
+            ...data,
+            fitnessExpirationDate: data.fitnessExpirationDate?.split("T")[0],
+            licenseExpirationDate: data.licenseExpirationDate?.split("T")[0],
+          });
         } catch (error) {
           console.error("Error fetching vehicle:", error);
         }
@@ -83,7 +103,11 @@ const VehiclesEntry = (selectedVehicle: Vehicle) => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "number" ? Number(value) : value,
+    }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,118 +145,52 @@ const VehiclesEntry = (selectedVehicle: Vehicle) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setMessage("");
-
+    setIsSubmitting(true);
+    setSubmitSuccess(false);
     try {
-      // Prepare form data for submission
+      // Create FormData for file upload
       const formDataToSend = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (key === "assetFiles") {
-          (value as File[]).forEach((file) =>
-            formDataToSend.append("assetFiles", file)
-          );
-        } else {
-          formDataToSend.append(key, value as string | Blob);
+
+      // Append all form fields
+      Object.keys(formData).forEach((key) => {
+        if (key !== "assetFiles") {
+          formDataToSend.append(key, formData[key as keyof Vehicle] as string);
         }
       });
 
-      const response = await fetch("/api/vehicles", {
-        method: "POST",
-        // headers: { "Content-Type": "application/json" },
-        body: formDataToSend,
+      // Append files if any
+      formData.assetFiles?.forEach((file) => {
+        formDataToSend.append("assetFiles", file);
       });
-
-      const result = await response.json();
-      if (response.ok) {
-        setMessage(result.message);
-
-        // Clear form fields
-        setFormData({
-          model: "",
-          registrationNumber: "",
-          type: "",
-          manufacturingYear: "",
-          engineNumber: "",
-          chassisNumber: "",
-          fuelType: "",
-          ownerName: "",
-          ownerAddress: "",
-          carryingCapacity: "",
-          fitnessExpirationDate: "",
-          licenseExpirationDate: "",
-          initialMileage: "",
-          averageMileage: "",
-          inService: false,
-          assetFiles: [],
-        });
-        // Clear file input field
-        if (fileInputRef) {
-          fileInputRef.value = ""; // Clear the file input field
-        }
-        setFilePreviews([]); // Clear file previews after successful submission
-        // Vanish success message after 2-3 seconds
-        setTimeout(() => {
-          setMessage("");
-        }, 3000);
-      } else {
-        setMessage(result.message || "Failed to add vehicle.");
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      setMessage("An error occurred. Please try again.");
-    }
-    //update vehicle data
-    try {
       const response = await fetch(`/api/vehicles/${vehicleId}`, {
-        method: "PUT", // Use PUT for updating the vehicle
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
-      const result = await response.json();
       if (response.ok) {
-        setMessage("Vehicle updated successfully!");
+        setSubmitSuccess(true);
         window.parent.postMessage(
-          { action: "closeModal" },
+          { action: "vehicleUpdated" },
           window.location.origin
-        ); // Close the modal after successful update
-        // Clear form fields
-        setFormData({
-          model: "",
-          registrationNumber: "",
-          type: "",
-          manufacturingYear: "",
-          engineNumber: "",
-          chassisNumber: "",
-          fuelType: "",
-          ownerName: "",
-          ownerAddress: "",
-          carryingCapacity: "",
-          fitnessExpirationDate: "",
-          licenseExpirationDate: "",
-          initialMileage: "",
-          averageMileage: "",
-          inService: false,
-          assetFiles: [],
-        });
-        // Clear file input field
-
-        if (fileInputRef) {
-          fileInputRef.value = ""; // Clear the file input field
-        }
-        setFilePreviews([]); // Clear file previews after successful submission
+        );
       } else {
-        setMessage(result.message || "Failed to update vehicle.");
+        const error = await response.json();
+        console.error("Failed to update vehicle:", error.message);
       }
+      // console.log("Vehicle updated successfully!");
     } catch (error) {
       console.error("Error updating vehicle:", error);
-      setMessage("An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
+  // Remove the file input reference
   const handleRemoveFile = (index: number) => {
     // Remove the file from the assetFiles array
-    const updatedFiles = formData.assetFiles.filter((_, i) => i !== index);
+    const updatedFiles = (formData.assetFiles ?? []).filter(
+      (_, i) => i !== index
+    );
     setFormData({ ...formData, assetFiles: updatedFiles });
 
     // Remove the file preview
@@ -250,7 +208,7 @@ const VehiclesEntry = (selectedVehicle: Vehicle) => {
           <input
             type="text"
             name="model"
-            value={formData.model}
+            value={formData.model || ""}
             onChange={handleChange}
             required
             className="w-full rounded-md border-gray-300"
@@ -297,6 +255,7 @@ const VehiclesEntry = (selectedVehicle: Vehicle) => {
             className="w-full rounded-md border-gray-300"
           />
         </div>
+        {/* Engine Number */}
         <div>
           <label className="block text-sm font-medium">Engine Number</label>
           <input
@@ -497,12 +456,20 @@ const VehiclesEntry = (selectedVehicle: Vehicle) => {
             ))}
           </div>
         )}
+        {/* Submit Button */}
         <div>
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md"
+            disabled={isSubmitting}
+            className={`px-4 py-2 ${
+              isSubmitting ? "bg-gray-400" : "bg-blue-600"
+            } text-white rounded-md`}
           >
-            {buttonText}
+            {isSubmitting
+              ? "Updating..."
+              : mode === "edit"
+              ? "Update Vehicle"
+              : "Add Vehicle"}
           </button>
         </div>
       </form>

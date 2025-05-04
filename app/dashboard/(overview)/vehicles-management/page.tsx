@@ -37,30 +37,19 @@ const VehiclesManagement = () => {
     fetchVehicles();
   }, []);
 
-  //Fetch vehicle by ID when selectedVehicle changes
-  useEffect(() => {
-    const fetchVehicleById = async () => {
-      if (!selectedVehicle) return;
-
-      try {
-        console.log("Fetching vehicle by ID:", selectedVehicle._id);
-        const response = await fetch(`/api/vehicles/${selectedVehicle._id}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch vehicle");
-        }
-        const vehicleData: Vehicle = await response.json();
-        console.log("Fetched vehicle data:", vehicleData);
-        setSelectedVehicle(vehicleData); // Update the selected vehicle with fresh data
-      } catch (error) {
-        console.error("Error fetching vehicle by ID:", error);
-      }
-    };
-
-    fetchVehicleById();
-  }, [selectedVehicle]);
+  // Add refreshVehicles function
+  const refreshVehicles = async () => {
+    try {
+      const response = await fetch("/api/vehicles/get-all");
+      const data: Vehicle[] = await response.json();
+      setVehicles(data);
+    } catch (error) {
+      console.error("Error fetching vehicles:", error);
+    }
+  };
 
   //Handle vehicle edit
-  const handleEditVehicle = (vehicle: any) => {
+  const handleEditVehicle = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
     setIsModalOpen(true);
   };
@@ -72,42 +61,53 @@ const VehiclesManagement = () => {
   };
 
   const confirmDeleteVehicle = async () => {
-    if (!selectedVehicle) return;
+    if (!selectedVehicle?._id) return;
 
     try {
+      console.log("Frontend: Deleting vehicle:", selectedVehicle._id);
+
       const response = await fetch(`/api/vehicles/${selectedVehicle._id}`, {
         method: "DELETE",
       });
 
-      if (response.ok) {
+      const result = await response.json();
+      console.log("Frontend: Delete response:", result);
+
+      if (response.ok && result.success) {
+        // Update local state
         setVehicles((prevVehicles) =>
           prevVehicles.filter((v) => v._id !== selectedVehicle._id)
         );
         setIsDeleteModalOpen(false);
         setSelectedVehicle(null);
       } else {
-        console.error("Failed to delete vehicle");
+        const error = await response.json();
+        console.error("Frontend: Failed to delete vehicle:", error.message);
+        alert(result.message || "Failed to delete vehicle");
       }
     } catch (error) {
-      console.error("Error deleting vehicle:", error);
+      console.error("Frontend: Error in delete operation:", error);
+      alert("An error occurred while deleting the vehicle");
     }
+  };
+
+  const handleActionClick = (vehicle: Vehicle) => {
+    setSelectedVehicle((prev) => (prev?._id === vehicle._id ? null : vehicle));
   };
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
 
-      if (event.data.action === "closeModal") {
+      if (event.data.action === "vehicleUpdated") {
+        refreshVehicles(); // Refresh the list
         setIsModalOpen(false);
         setSelectedVehicle(null);
       }
     };
 
     window.addEventListener("message", handleMessage);
-
-    return () => {
-      window.removeEventListener("message", handleMessage);
-    };
+    return () => window.removeEventListener("message", handleMessage);
   }, []);
 
   return (
@@ -147,7 +147,7 @@ const VehiclesManagement = () => {
                 </td>
                 <td className="border border-gray-300 px-4 py-2 flex items-center justify-center relative">
                   <button
-                    onClick={() => setSelectedVehicle(vehicle)}
+                    onClick={() => handleActionClick(vehicle)}
                     className="flex items-center justify-center px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
                   >
                     <span className="material-icons">
@@ -184,25 +184,21 @@ const VehiclesManagement = () => {
       {isModalOpen && selectedVehicle && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-md w-2/3">
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-2 right-2 text-red-500"
-            >
-              Close
-            </button>
             <h2 className="text-xl font-bold mb-4">Update Vehicle</h2>
             <iframe
               src={`/dashboard/vehicles-entry?id=${selectedVehicle._id}&mode=edit`}
               className="w-full h-[600px] border rounded-md"
-              onLoad={() => {
-                const iframe = document.querySelector("iframe");
-                iframe?.contentWindow?.postMessage(
-                  { action: "closeModal" },
-                  window.location.origin
-                );
-              }}
             ></iframe>
-            {/* <VehiclesEntry selectedVehicle={selectedVehicle} /> */}
+            <button
+              onClick={() => {
+                setIsModalOpen(false);
+                setSelectedVehicle(null);
+                refreshVehicles(); // Refresh the list after update
+              }}
+              className="mt-4 px-4 py-2 bg-gray-300 rounded-md"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
