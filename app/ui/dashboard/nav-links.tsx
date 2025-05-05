@@ -2,6 +2,7 @@
 import {
   HomeIcon,
   ShareIcon,
+  TruckIcon,
   UsersIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
@@ -12,9 +13,15 @@ const links = [
   { name: "Home", href: "/dashboard", icon: HomeIcon },
   { name: "Offices", href: "/dashboard/offices", icon: ShareIcon },
   { name: "Users", href: "/dashboard/users", icon: UsersIcon },
+  { name: "Add Vehicle", href: "/dashboard/vehicles-entry", icon: TruckIcon },
+  {
+    name: "Vehicle Management",
+    href: "/dashboard/vehicles-management",
+    icon: TruckIcon,
+  },
 ];
 
-export default function NavLinks({userRole}: {userRole: string | null}) {
+export default function NavLinks({ userRole }: { userRole: string | null }) {
   const pathname = usePathname();
   return (
     <>
