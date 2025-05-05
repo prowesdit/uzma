@@ -1,5 +1,6 @@
 "use client";
 import {
+  ArrowRightStartOnRectangleIcon,
   HomeIcon,
   ShareIcon,
   TruckIcon,
@@ -12,6 +13,7 @@ import { usePathname } from "next/navigation";
 const links = [
   { name: "Home", href: "/dashboard", icon: HomeIcon },
   { name: "Offices", href: "/dashboard/offices", icon: ShareIcon },
+  { name: "Bookings", href: "/dashboard/bookings", icon: ArrowRightStartOnRectangleIcon },
   { name: "Users", href: "/dashboard/users", icon: UsersIcon },
   { name: "Add Vehicle", href: "/dashboard/vehicles-entry", icon: TruckIcon },
   {
@@ -26,7 +28,6 @@ export default function NavLinks({ userRole }: { userRole: string | null }) {
   return (
     <>
       {links.map((link) => {
-        // if(userRole === "salesman" && link.href === "/dashboard/users") return;
         const LinkIcon = link.icon;
         return (
           <Link
