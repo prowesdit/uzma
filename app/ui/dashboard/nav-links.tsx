@@ -6,6 +6,7 @@ import {
   TruckIcon,
   UsersIcon,
   WrenchScrewdriverIcon,
+  BellAlertIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Link from "next/link";
@@ -25,6 +26,11 @@ const links = [
     name: "Manage Vehicles",
     href: "/dashboard/vehicles-management",
     icon: WrenchScrewdriverIcon,
+  },
+  {
+    name: "Notifications",
+    href: "/dashboard/notification",
+    icon: BellAlertIcon,
   },
 ];
 
