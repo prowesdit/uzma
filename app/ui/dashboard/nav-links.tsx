@@ -1,6 +1,7 @@
 "use client";
 import {
   ArrowRightStartOnRectangleIcon,
+  CircleStackIcon,
   HomeIcon,
   ShareIcon,
   UsersIcon,
@@ -13,6 +14,7 @@ const links = [
   { name: "Home", href: "/dashboard", icon: HomeIcon },
   { name: "Offices", href: "/dashboard/offices", icon: ShareIcon },
   { name: "Bookings", href: "/dashboard/bookings", icon: ArrowRightStartOnRectangleIcon },
+  { name: "Inventory", href: "/dashboard/inventory", icon: CircleStackIcon },
   { name: "Users", href: "/dashboard/users", icon: UsersIcon },
 ];
 
