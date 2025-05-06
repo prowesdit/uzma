@@ -79,6 +79,59 @@ export type OfficeState = {
   message?: string | null;
 };
 
+const BookingFormSchema = z.object({
+  id: z.string(),
+  customer: z.string({
+    invalid_type_error: "Please provide customer name.",
+  }),
+  vehicle: z.string({
+    invalid_type_error: "Please provide vehicle info.",
+  }),
+  driver: z.string({
+    invalid_type_error: "Please provide driver info.",
+  }),
+  pickup_address: z.string({
+    invalid_type_error: "Please provide pickup address.",
+  }),
+  dropoff_address: z.string({
+    invalid_type_error: "Please provide dropoff address.",
+  }),
+  pickup_dt: z.string({
+    invalid_type_error: "Please provide pickup date & time.",
+  }),
+  dropoff_dt: z.string({
+    invalid_type_error: "Please provide dropoff date & time.",
+  }),
+  return_pickup_dt: z.string().optional(),
+  return_dropoff_dt: z.string().optional(),
+  passenger_num: z.coerce.number({
+    invalid_type_error: "Please provide number of passengers.",
+  }),
+  payment_status: z.enum(["pending", "paid"]),
+  booking_status: z.enum(["upcoming", "pending", "completed"]),
+  booking_type: z.enum(["oneway", "return"]),
+  note: z.string().optional(),
+});
+
+export type BookingState = {
+  errors?: {
+    customer?: string[];
+    vehicle?: string[];
+    driver?: string[];
+    pickup_address?: string[];
+    dropoff_address?: string[];
+    pickup_dt?: string[];
+    dropoff_dt?: string[];
+    return_pickup_dt?: string[];
+    return_dropoff_dt?: string[];
+    passenger_num?: string[];
+    payment_status?: string[];
+    booking_status?: string[];
+    booking_type?: string[];
+  };
+  message?: string | null;
+};
+
 
 // functions
 
@@ -251,6 +304,164 @@ export async function deleteOffice(id: string) {
   }
 }
 
+
+const CreateBooking = BookingFormSchema.omit({ id: true });
+export async function createBooking(prevState: BookingState, formData: FormData) {
+  const validatedFields = CreateBooking.safeParse({
+    customer: formData.get("customer"),
+    vehicle: formData.get("vehicle"),
+    driver: formData.get("driver"),
+    pickup_address: formData.get("pickup_address"),
+    dropoff_address: formData.get("dropoff_address"),
+    pickup_dt: formData.get("pickup_dt"),
+    dropoff_dt: formData.get("dropoff_dt"),
+    return_pickup_dt: formData.get("return_pickup_dt") || undefined,
+    return_dropoff_dt: formData.get("return_dropoff_dt") || undefined,
+    passenger_num: formData.get("passenger_num"),
+    payment_status: formData.get("payment_status"),
+    booking_status: formData.get("booking_status"),
+    booking_type: formData.get("booking_type"),
+    note: formData.get("note") || undefined,
+  });
+
+  if (!validatedFields.success) {
+    console.log("Validation error:", validatedFields.error.flatten().fieldErrors);
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Missing Fields. Failed to Create Booking.",
+    };
+  }
+
+  const {
+    customer,
+    vehicle,
+    driver,
+    pickup_address,
+    dropoff_address,
+    pickup_dt,
+    dropoff_dt,
+    return_pickup_dt,
+    return_dropoff_dt,
+    passenger_num,
+    payment_status,
+    booking_status,
+    booking_type,
+    note,
+  } = validatedFields.data;
+
+  try {
+    const client = await clientPromise;
+    const db = client.db("uzma");
+    const collection = db.collection("bookings");
+
+    await collection.insertOne({
+      customer,
+      vehicle,
+      driver,
+      pickup_address,
+      dropoff_address,
+      pickup_dt: new Date(pickup_dt),
+      dropoff_dt: new Date(dropoff_dt),
+      return_pickup_dt: return_pickup_dt ? new Date(return_pickup_dt) : null,
+      return_dropoff_dt: return_dropoff_dt ? new Date(return_dropoff_dt) : null,
+      passenger_num,
+      payment_status,
+      booking_status,
+      booking_type,
+      note: note || "",
+      created_at: new Date(),
+    });
+
+    revalidatePath("/dashboard/bookings");
+    return { message: "Booking created successfully." };
+  } catch (error) {
+    console.log(error);
+    return { message: "Database Error: Failed to Create Booking." };
+  }
+}
+
+const UpdateBooking = BookingFormSchema.omit({ id: true });
+export async function updateBooking(
+  id: string,
+  prevState: BookingState,
+  formData: FormData
+) {
+  const validatedFields = UpdateBooking.safeParse({
+    customer: formData.get("customer"),
+    vehicle: formData.get("vehicle"),
+    driver: formData.get("driver"),
+    pickup_address: formData.get("pickup_address"),
+    dropoff_address: formData.get("dropoff_address"),
+    pickup_dt: formData.get("pickup_dt"),
+    dropoff_dt: formData.get("dropoff_dt"),
+    return_pickup_dt: formData.get("return_pickup_dt") || undefined,
+    return_dropoff_dt: formData.get("return_dropoff_dt") || undefined,
+    passenger_num: formData.get("passenger_num"),
+    payment_status: formData.get("payment_status"),
+    booking_status: formData.get("booking_status"),
+    booking_type: formData.get("booking_type"),
+    note: formData.get("note") || undefined,
+  });
+
+  if (!validatedFields.success) {
+    console.log("Validation error:", validatedFields.error.flatten().fieldErrors);
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Missing Fields. Failed to Update Booking.",
+    };
+  }
+
+  const {
+    customer,
+    vehicle,
+    driver,
+    pickup_address,
+    dropoff_address,
+    pickup_dt,
+    dropoff_dt,
+    return_pickup_dt,
+    return_dropoff_dt,
+    passenger_num,
+    payment_status,
+    booking_status,
+    booking_type,
+    note,
+  } = validatedFields.data;
+
+  try {
+    const client = await clientPromise;
+    const db = client.db("uzma");
+    const collection = db.collection("bookings");
+
+    await collection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          customer: customer,
+          vehicle,
+          driver,
+          pickup_address,
+          dropoff_address,
+          pickup_dt,
+          dropoff_dt,
+          return_pickup_dt,
+          return_dropoff_dt,
+          passenger_num,
+          payment_status,
+          booking_status,
+          booking_type,
+          note,
+        },
+      }
+    );
+
+    revalidatePath("/dashboard/bookings");
+    return { message: "Booking edited successfully." };
+  } catch (error) {
+    console.log(error);
+    return { message: "Database Error: Failed to Update Booking." };
+  }
+}
 
 
 

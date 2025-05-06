@@ -4,7 +4,7 @@ import {
   Cog6ToothIcon,
 } from "@heroicons/react/24/solid";
 import React, { useEffect, useState } from "react";
-import VehiclesEntry from "../vehicles-entry/page";
+// import VehiclesEntry from "../../vehicles-entry/page";
 // import { useRouter } from "next/router";
 // Define the Vehicle type
 interface Vehicle {
@@ -12,14 +12,50 @@ interface Vehicle {
   model: string;
   registrationNumber: string;
   type: string;
+  manufacturingYear: string | number;
+  engineNumber: string;
+  chassisNumber: string;
+  fuelType: string;
+  ownerName: string;
+  ownerAddress: string;
+  carryingCapacity: string | number;
+  fitnessExpirationDate: string;
+  licenseExpirationDate: string;
+  initialMileage: string | number;
+  averageMileage: string | number;
   inService: boolean;
+  assetFiles?: File[];
+  assetFileUrl?: string;
 }
+
+const initialVehicleState: Vehicle = {
+  _id: "",
+  model: "",
+  registrationNumber: "",
+  type: "",
+  manufacturingYear: 0,
+  engineNumber: "",
+  chassisNumber: "",
+  fuelType: "",
+  ownerName: "",
+  ownerAddress: "",
+  carryingCapacity: 0,
+  fitnessExpirationDate: "",
+  licenseExpirationDate: "",
+  initialMileage: 0,
+  averageMileage: 0,
+  inService: false,
+  assetFiles: [] as File[],
+};
 
 const VehiclesManagement = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState<Vehicle>(
+    selectedVehicle || initialVehicleState
+  );
   // const router = useRouter();
 
   useEffect(() => {
@@ -27,7 +63,7 @@ const VehiclesManagement = () => {
       try {
         const response = await fetch("/api/vehicles/get-all");
         const data: Vehicle[] = await response.json();
-        console.log("Fetched vehicles:", data); // Log the fetched data
+        // console.log("Fetched vehicles:", data); // Log the fetched data
         setVehicles(data);
       } catch (error) {
         console.error("Error fetching vehicles:", error);
@@ -36,6 +72,10 @@ const VehiclesManagement = () => {
 
     fetchVehicles();
   }, []);
+
+  useEffect(() => {
+    if (selectedVehicle) setEditFormData(selectedVehicle);
+  }, [selectedVehicle]);
 
   // Add refreshVehicles function
   const refreshVehicles = async () => {
@@ -54,6 +94,32 @@ const VehiclesManagement = () => {
     setIsModalOpen(true);
   };
 
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`/api/vehicles/${editFormData._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editFormData),
+      });
+
+      if (response.ok) {
+        setIsModalOpen(false);
+        setSelectedVehicle(null);
+        refreshVehicles();
+      } else {
+        const error = await response.json();
+        console.error("Error updating vehicle:", error.message);
+        alert(error.message || "Failed to update vehicle");
+      }
+    } catch (error) {
+      console.error("Error in update operation:", error);
+      alert("An error occurred while updating the vehicle");
+    }
+  };
+
   //Handle vehicle delete
   const handleDeleteVehicle = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
@@ -64,14 +130,14 @@ const VehiclesManagement = () => {
     if (!selectedVehicle?._id) return;
 
     try {
-      console.log("Frontend: Deleting vehicle:", selectedVehicle._id);
+      // console.log("Frontend: Deleting vehicle:", selectedVehicle._id);
 
       const response = await fetch(`/api/vehicles/${selectedVehicle._id}`, {
         method: "DELETE",
       });
 
       const result = await response.json();
-      console.log("Frontend: Delete response:", result);
+      // console.log("Frontend: Delete response:", result);
 
       if (response.ok && result.success) {
         // Update local state
@@ -109,6 +175,227 @@ const VehiclesManagement = () => {
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, []);
+
+  const renderVehicleForm = (
+    formData: Vehicle,
+    setFormData: React.Dispatch<React.SetStateAction<Vehicle>>,
+    handleSubmit: (e: React.FormEvent) => void,
+    mode: string
+  ) => {
+    return (
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label className="block text-gray-700">Model</label>
+          <input
+            type="text"
+            value={formData.model}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, model: e.target.value }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Registration Number</label>
+          <input
+            type="text"
+            value={formData.registrationNumber}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                registrationNumber: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Vehicle Type</label>
+          <input
+            type="text"
+            value={formData.type}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, type: e.target.value }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Manufacturing Year</label>
+          <input
+            type="number"
+            value={formData.manufacturingYear}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, type: e.target.value }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Engine Number</label>
+          <input
+            type="text"
+            value={formData.engineNumber}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, type: e.target.value }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Chassis Number</label>
+          <input
+            type="text"
+            value={formData.chassisNumber}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, type: e.target.value }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Fuel Type</label>
+          <input
+            type="text"
+            value={formData.fuelType}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, type: e.target.value }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Owner Name</label>
+          <input
+            type="text"
+            value={formData.ownerName}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, type: e.target.value }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Owner Address</label>
+          <input
+            type="text"
+            value={formData.ownerAddress}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, type: e.target.value }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Carrying Capacity</label>
+          <input
+            type="number"
+            value={formData.carryingCapacity}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                carryingCapacity: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Fitness Expiration Date</label>
+          <input
+            type="date"
+            value={formData.fitnessExpirationDate}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                fitnessExpirationDate: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">License Expiration Date</label>
+          <input
+            type="date"
+            value={formData.licenseExpirationDate}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                licenseExpirationDate: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Initial Mileage</label>
+          <input
+            type="number"
+            value={formData.initialMileage}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                initialMileage: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Average Mileage</label>
+          <input
+            type="number"
+            value={formData.averageMileage}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                averageMileage: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-gray-700">In Service</label>
+          <select
+            value={formData.inService ? "true" : "false"}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                inService: e.target.value === "true",
+              }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          >
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Asset Files</label>
+          <input
+            type="file"
+            multiple
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                assetFiles: Array.from(e.target.files || []),
+              }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded-md"
+        >
+          {mode === "edit" ? "Update Vehicle" : "Add Vehicle"}
+        </button>
+      </form>
+    );
+  };
 
   return (
     <div className="p-6">
@@ -183,17 +470,18 @@ const VehiclesManagement = () => {
       {/*Edit Modal */}
       {isModalOpen && selectedVehicle && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-md w-2/3">
+          <div className="bg-white p-6 rounded-md w-2/3 max-h-[80vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Update Vehicle</h2>
-            <iframe
-              src={`/dashboard/vehicles-entry?id=${selectedVehicle._id}&mode=edit`}
-              className="w-full h-[600px] border rounded-md"
-            ></iframe>
+            {renderVehicleForm(
+              editFormData,
+              setEditFormData,
+              handleEditSubmit,
+              "edit"
+            )}
             <button
               onClick={() => {
                 setIsModalOpen(false);
                 setSelectedVehicle(null);
-                refreshVehicles(); // Refresh the list after update
               }}
               className="mt-4 px-4 py-2 bg-gray-300 rounded-md"
             >

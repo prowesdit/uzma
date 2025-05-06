@@ -5,7 +5,6 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 interface Vehicle {
-  // _id: string;
   model: string;
   registrationNumber: string;
   type: string;
@@ -25,80 +24,101 @@ interface Vehicle {
   assetFileUrl?: string;
 }
 
-const VehiclesEntry = (selectedVehicle: Vehicle) => {
-  const [searchParams, setSearchParams] = useState<URLSearchParams | null>(
-    null
-  );
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  useEffect(() => {
-    // Access the window object safely on the client side
-    if (typeof window !== "undefined") {
-      setSearchParams(new URLSearchParams(window.location.search));
-    }
-  }, []);
-
-  const mode = searchParams?.get("mode");
-  const buttonText = mode === "edit" ? "Update Vehicle" : "Add Vehicle";
-
-  const vehicleId = searchParams?.get("id");
-  console.log(vehicleId);
+const VehiclesEntry = () => {
+  const searchParams =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : null;
+  const mode = searchParams?.get("mode") ?? "add";
+  const vehicleId = searchParams?.get("id") ?? "";
 
   const [formData, setFormData] = useState<Vehicle>({
-    // _id: "", // Default value for _id
     model: "",
     registrationNumber: "",
     type: "",
-    manufacturingYear: 0,
+    manufacturingYear: "",
     engineNumber: "",
     chassisNumber: "",
     fuelType: "",
     ownerName: "",
     ownerAddress: "",
-    carryingCapacity: 0,
+    carryingCapacity: "",
     fitnessExpirationDate: "",
     licenseExpirationDate: "",
-    initialMileage: 0,
-    averageMileage: 0,
+    initialMileage: "",
+    averageMileage: "",
     inService: false,
-    assetFiles: [] as File[], // field for the uploaded file
+    assetFiles: [],
   });
 
-  // Fetch vehicle data if an ID is provided
+  const [filePreviews, setFilePreviews] = useState<
+    { name: string; preview: string | null }[]
+  >([]);
+  const [fileInputRef, setFileInputRef] = useState<HTMLInputElement | null>(
+    null
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [message, setMessage] = useState("");
 
+  // Fetch vehicle data if in edit mode
   useEffect(() => {
-    if (vehicleId) {
+    if (mode === "edit" && vehicleId) {
       const fetchVehicle = async () => {
         try {
           const response = await fetch(`/api/vehicles/${vehicleId}`);
-          if (!response.ok) {
-            throw new Error("Failed to fetch vehicle");
-          }
+          if (!response.ok) throw new Error("Failed to fetch vehicle");
           const data = await response.json();
-          console.log(data);
-          // Convert date strings to proper format for input fields
           setFormData({
             ...data,
             fitnessExpirationDate: data.fitnessExpirationDate?.split("T")[0],
             licenseExpirationDate: data.licenseExpirationDate?.split("T")[0],
+            assetFiles: [],
           });
         } catch (error) {
           console.error("Error fetching vehicle:", error);
         }
       };
-
       fetchVehicle();
     }
-  }, [vehicleId]);
+  }, [mode, vehicleId]);
 
-  const [filePreviews, setFilePreviews] = useState<
-    { name: string; preview: string | null }[]
-  >([]); // Array to store file previews
-  // const [fileName, setFileName] = useState<string | null>(null); // For file name
-  const [fileInputRef, setFileInputRef] = useState<HTMLInputElement | null>(
-    null
-  );
-  const [message, setMessage] = useState("");
+  // File handling
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setFormData({ ...formData, assetFiles: files });
+      const previews = files
+        .map((file) => {
+          if (file.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              setFilePreviews((prev) => [
+                ...prev,
+                { name: file.name, preview: reader.result as string },
+              ]);
+            };
+            reader.readAsDataURL(file);
+            return null;
+          } else if (file.type === "application/pdf") {
+            const pdfUrl = URL.createObjectURL(file);
+            return { name: file.name, preview: pdfUrl };
+          } else {
+            return { name: file.name, preview: null };
+          }
+        })
+        .filter(Boolean) as { name: string; preview: string | null }[];
+      setFilePreviews(previews);
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    const updatedFiles = (formData.assetFiles ?? []).filter(
+      (_, i) => i !== index
+    );
+    setFormData({ ...formData, assetFiles: updatedFiles });
+    setFilePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -110,286 +130,322 @@ const VehiclesEntry = (selectedVehicle: Vehicle) => {
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files); // Convert FileList to an array
-      setFormData({ ...formData, assetFiles: files });
-      // setFileName(file.name); // Set the file name for display
-
-      // Generate previews for image and PDF files
-      const previews = files.map((file) => {
-        if (file.type.startsWith("image/")) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            setFilePreviews((prev) => [
-              ...prev,
-              { name: file.name, preview: reader.result as string },
-            ]);
-          };
-          reader.readAsDataURL(file);
-        } else if (file.type === "application/pdf") {
-          const pdfUrl = URL.createObjectURL(file);
-          return { name: file.name, preview: pdfUrl };
-        } else {
-          return { name: file.name, preview: null }; // No preview for unsupported files
-        }
-      });
-
-      // Add non-image previews (e.g., PDFs) to the state
-      setFilePreviews((prev) => [
-        ...prev,
-        ...previews.filter((preview) => preview !== undefined),
-      ]);
-    }
-  };
-
+  // Unified submit handler for both add and edit
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitSuccess(false);
+    setMessage("");
     try {
-      // Create FormData for file upload
       const formDataToSend = new FormData();
-
-      // Append all form fields
       Object.keys(formData).forEach((key) => {
         if (key !== "assetFiles") {
           formDataToSend.append(key, formData[key as keyof Vehicle] as string);
         }
       });
-
-      // Append files if any
       formData.assetFiles?.forEach((file) => {
         formDataToSend.append("assetFiles", file);
       });
-      const response = await fetch(`/api/vehicles/${vehicleId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+
+      let url = "/api/vehicles";
+      let method: "POST" | "PUT" = "POST";
+      if (mode === "edit" && vehicleId) {
+        url = `/api/vehicles/${vehicleId}`;
+        method = "PUT";
+      }
+
+      const response = await fetch(url, {
+        method,
+        body: formDataToSend,
       });
 
       if (response.ok) {
         setSubmitSuccess(true);
+        setMessage(
+          mode === "edit"
+            ? "Vehicle updated successfully!"
+            : "Vehicle added successfully!"
+        );
+        setFormData({
+          model: "",
+          registrationNumber: "",
+          type: "",
+          manufacturingYear: "",
+          engineNumber: "",
+          chassisNumber: "",
+          fuelType: "",
+          ownerName: "",
+          ownerAddress: "",
+          carryingCapacity: "",
+          fitnessExpirationDate: "",
+          licenseExpirationDate: "",
+          initialMileage: "",
+          averageMileage: "",
+          inService: false,
+          assetFiles: [],
+        });
+        if (fileInputRef) fileInputRef.value = "";
+        setFilePreviews([]);
+        setTimeout(() => setMessage(""), 3000);
         window.parent.postMessage(
           { action: "vehicleUpdated" },
           window.location.origin
         );
       } else {
         const error = await response.json();
-        console.error("Failed to update vehicle:", error.message);
+        setMessage(error.message || "Failed to save vehicle");
       }
-      // console.log("Vehicle updated successfully!");
     } catch (error) {
-      console.error("Error updating vehicle:", error);
+      setMessage("Error saving vehicle");
+      console.error("Error saving vehicle:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
-  // Remove the file input reference
-  const handleRemoveFile = (index: number) => {
-    // Remove the file from the assetFiles array
-    const updatedFiles = (formData.assetFiles ?? []).filter(
-      (_, i) => i !== index
-    );
-    setFormData({ ...formData, assetFiles: updatedFiles });
 
-    // Remove the file preview
-    const updatedPreviews = filePreviews.filter((_, i) => i !== index);
-    setFilePreviews(updatedPreviews);
-  };
-
-  return (
-    <div className="flex flex-col items-center p-6">
-      <h1 className="text-2xl font-bold mb-4">Vehicle Entry Form</h1>
-      <form onSubmit={handleSubmit} className="  space-y-4 w-2/3">
-        {/* //model */}
+  // --- FORM RENDER FUNCTION ---
+  function renderVehicleForm(
+    formData: Vehicle,
+    setFormData: React.Dispatch<React.SetStateAction<Vehicle>>,
+    handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void,
+    mode: string | null,
+    filePreviews: { name: string; preview: string | null }[],
+    handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    handleRemoveFile: (index: number) => void,
+    fileInputRef: HTMLInputElement | null,
+    setFileInputRef: React.Dispatch<
+      React.SetStateAction<HTMLInputElement | null>
+    >
+  ) {
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Model */}
         <div>
           <label className="block text-sm font-medium">Model</label>
           <input
-            type="text"
             name="model"
-            value={formData.model || ""}
-            onChange={handleChange}
+            value={formData.model}
+            onChange={(e) =>
+              setFormData({ ...formData, model: e.target.value })
+            }
+            placeholder="Model"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           />
         </div>
-        {/* //registrationNumber */}
+        {/* Registration Number */}
         <div>
           <label className="block text-sm font-medium">
             Registration Number
           </label>
           <input
-            type="text"
             name="registrationNumber"
-            // value={formData.registrationNumber}
-            defaultValue={selectedVehicle.registrationNumber}
-            onChange={handleChange}
+            value={formData.registrationNumber}
+            onChange={(e) =>
+              setFormData({ ...formData, registrationNumber: e.target.value })
+            }
+            placeholder="Registration Number"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           />
         </div>
-        {/* //vehicle type */}
+
         <div>
           <label className="block text-sm font-medium">Type</label>
           <input
-            type="text"
             name="type"
             value={formData.type}
-            onChange={handleChange}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+            placeholder="Vehicle Type"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           />
         </div>
-        {/* //manufacturing year */}
+
         <div>
           <label className="block text-sm font-medium">
             Manufacturing Year
           </label>
           <input
-            type="number"
             name="manufacturingYear"
+            type="number"
             value={formData.manufacturingYear}
-            onChange={handleChange}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                manufacturingYear: Number(e.target.value),
+              })
+            }
+            placeholder="Manufacturing Year"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           />
         </div>
-        {/* Engine Number */}
+
         <div>
           <label className="block text-sm font-medium">Engine Number</label>
           <input
-            type="text"
             name="engineNumber"
             value={formData.engineNumber}
-            onChange={handleChange}
+            onChange={(e) =>
+              setFormData({ ...formData, engineNumber: e.target.value })
+            }
+            placeholder="Engine Number"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           />
         </div>
-        {/* //chassis number */}
         <div>
           <label className="block text-sm font-medium">Chassis Number</label>
           <input
-            type="text"
             name="chassisNumber"
             value={formData.chassisNumber}
-            onChange={handleChange}
+            onChange={(e) =>
+              setFormData({ ...formData, chassisNumber: e.target.value })
+            }
+            placeholder="Chassis Number"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           />
         </div>
-        {/* //fuel type */}
         <div>
           <label className="block text-sm font-medium">Fuel Type</label>
           <input
-            type="text"
             name="fuelType"
-            // value={formData.fuelType}
-            defaultValue={selectedVehicle.fuelType}
-            onChange={handleChange}
+            value={formData.fuelType}
+            onChange={(e) =>
+              setFormData({ ...formData, fuelType: e.target.value })
+            }
+            placeholder="Fuel Type"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           />
         </div>
-        {/* //owner name */}
         <div>
           <label className="block text-sm font-medium">Owner's Name</label>
           <input
-            type="text"
             name="ownerName"
             value={formData.ownerName}
-            onChange={handleChange}
+            onChange={(e) =>
+              setFormData({ ...formData, ownerName: e.target.value })
+            }
+            placeholder="Owner's Name"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           />
         </div>
-        {/* //owner address */}
+
         <div>
           <label className="block text-sm font-medium">Owner's Address</label>
           <textarea
             name="ownerAddress"
             value={formData.ownerAddress}
-            onChange={handleChange}
+            onChange={(e) =>
+              setFormData({ ...formData, ownerAddress: e.target.value })
+            }
+            placeholder="Owner's Address"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           ></textarea>
         </div>
-        {/* //carrying capacity */}
+
         <div>
           <label className="block text-sm font-medium">
             Carrying Capacity(Ton)
           </label>
           <input
-            type="number"
             name="carryingCapacity"
+            type="number"
             value={formData.carryingCapacity}
-            onChange={handleChange}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                carryingCapacity: Number(e.target.value),
+              })
+            }
+            placeholder="Carrying Capacity (Ton)"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           />
         </div>
-        {/* //fitness expiration date */}
+
         <div>
           <label className="block text-sm font-medium">
             Fitness Expiration Date
           </label>
           <input
-            type="date"
             name="fitnessExpirationDate"
+            type="date"
             value={formData.fitnessExpirationDate}
-            onChange={handleChange}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                fitnessExpirationDate: e.target.value,
+              })
+            }
+            placeholder="Fitness Expiration Date"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           />
         </div>
-        {/* //license expiration date */}
+
         <div>
           <label className="block text-sm font-medium">
             License Expiration Date
           </label>
-
           <input
-            type="date"
             name="licenseExpirationDate"
+            type="date"
             value={formData.licenseExpirationDate}
-            onChange={handleChange}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                licenseExpirationDate: e.target.value,
+              })
+            }
+            placeholder="License Expiration Date"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           />
         </div>
-
-        {/* Initial Mileage / Litre */}
         <div>
           <label className="block text-sm font-medium">
             Initial Mileage / Litre
           </label>
           <input
-            type="number"
             name="initialMileage"
+            type="number"
             value={formData.initialMileage}
-            onChange={handleChange}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                initialMileage: Number(e.target.value),
+              })
+            }
+            placeholder="Initial Mileage / Litre"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           />
         </div>
-
-        {/* Average Mileage / Litre */}
         <div>
           <label className="block text-sm font-medium">
             Average Mileage / Litre
           </label>
           <input
-            type="number"
             name="averageMileage"
+            type="number"
             value={formData.averageMileage}
-            onChange={handleChange}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                averageMileage: Number(e.target.value),
+              })
+            }
+            placeholder="Average Mileage / Litre"
+            className="w-full border px-2 py-1 rounded"
             required
-            className="w-full rounded-md border-gray-300"
           />
         </div>
-
-        {/* In Service? */}
         <div className="flex items-center space-x-2">
           <label className="block text-sm font-medium">onTrip?</label>
           <input
@@ -402,20 +458,19 @@ const VehiclesEntry = (selectedVehicle: Vehicle) => {
             className="h-5 w-5 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
           />
         </div>
-        {/* Upload Vehicles Document */}
-        <div className="mt-2">
+        <div>
           <label htmlFor="assetFiles" className="block text-sm font-medium">
             Upload Vehicles Document
             {/* <PaperClipIcon className="h-5 w-5 text-gray-600" /> */}
           </label>
           <input
-            id="assetFiles"
+            name="assetFiles"
             type="file"
             accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
             multiple
             onChange={handleFileChange}
-            ref={(ref) => setFileInputRef(ref)} // Set the file input reference
-            className="flex items-center space-x-2"
+            ref={(input) => setFileInputRef(input)} // Set the file input reference
+            className="w-full border px-2 py-1 rounded"
           />
         </div>
 
@@ -456,24 +511,41 @@ const VehiclesEntry = (selectedVehicle: Vehicle) => {
             ))}
           </div>
         )}
-        {/* Submit Button */}
-        <div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`px-4 py-2 ${
-              isSubmitting ? "bg-gray-400" : "bg-blue-600"
-            } text-white rounded-md`}
-          >
-            {isSubmitting
-              ? "Updating..."
-              : mode === "edit"
-              ? "Update Vehicle"
-              : "Add Vehicle"}
-          </button>
-        </div>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded"
+          disabled={isSubmitting}
+        >
+          {isSubmitting
+            ? "Saving..."
+            : mode === "edit"
+            ? "Update Vehicle"
+            : "Add Vehicle"}
+        </button>
+        {message && (
+          <div className="mt-2 text-green-600 font-semibold">{message}</div>
+        )}
       </form>
-      {message && <p className="mt-4 text-green-600">{message}</p>}
+    );
+  }
+
+  // --- MAIN RENDER ---
+  return (
+    <div className="flex flex-col items-center p-6 w-2/3 mx-auto rounded-md shadow-md bg-white">
+      <h1 className="text-2xl font-bold mb-4">
+        {mode === "edit" ? "Edit Vehicle" : "Vehicle Entry Form"}
+      </h1>
+      {renderVehicleForm(
+        formData,
+        setFormData,
+        handleSubmit,
+        mode ?? null,
+        filePreviews,
+        handleFileChange,
+        handleRemoveFile,
+        fileInputRef,
+        setFileInputRef
+      )}
     </div>
   );
 };

@@ -1,9 +1,11 @@
 "use client";
 import {
+  ArrowRightStartOnRectangleIcon,
   HomeIcon,
   ShareIcon,
   TruckIcon,
   UsersIcon,
+  WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Link from "next/link";
@@ -12,12 +14,17 @@ import { usePathname } from "next/navigation";
 const links = [
   { name: "Home", href: "/dashboard", icon: HomeIcon },
   { name: "Offices", href: "/dashboard/offices", icon: ShareIcon },
+  {
+    name: "Bookings",
+    href: "/dashboard/bookings",
+    icon: ArrowRightStartOnRectangleIcon,
+  },
   { name: "Users", href: "/dashboard/users", icon: UsersIcon },
   { name: "Add Vehicle", href: "/dashboard/vehicles-entry", icon: TruckIcon },
   {
-    name: "Vehicle Management",
+    name: "Manage Vehicles",
     href: "/dashboard/vehicles-management",
-    icon: TruckIcon,
+    icon: WrenchScrewdriverIcon,
   },
 ];
 
@@ -26,7 +33,6 @@ export default function NavLinks({ userRole }: { userRole: string | null }) {
   return (
     <>
       {links.map((link) => {
-        // if(userRole === "salesman" && link.href === "/dashboard/users") return;
         const LinkIcon = link.icon;
         return (
           <Link
