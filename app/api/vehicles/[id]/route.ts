@@ -69,8 +69,8 @@ export async function PUT(
     }
 
     const vehicleData = await req.json();
-    console.log("Received update request for vehicle:", id);
-    console.log("Update data:", vehicleData);
+    // console.log("Received update request for vehicle:", id);
+    // console.log("Update data:", vehicleData);
 
     // Remove _id from update data if present
     const { _id, ...updateData } = vehicleData;
@@ -104,7 +104,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await context.params;
-    console.log("API: Delete request received for ID:", id);
+    // console.log("API: Delete request received for ID:", id);
 
     if (!id) {
       return NextResponse.json(
@@ -113,7 +113,7 @@ export async function DELETE(
       );
     }
     const result = await deleteVehicle(id);
-    console.log("API: Delete operation result:", result);
+    // console.log("API: Delete operation result:", result);
 
     if (!result.success) {
       return NextResponse.json(

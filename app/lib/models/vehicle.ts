@@ -63,7 +63,7 @@ export async function getVehicle(id: string) {
     const collection = db.collection("vehicles");
 
     // Try both ObjectId and string queries
-    const query = { $or: [{ _id: new ObjectId(id) }, { _id: id }] };
+    const query = { _id: new ObjectId(id) };
 
     // console.log("Database query:", query);
     const vehicle = await collection.findOne(query);
@@ -72,9 +72,7 @@ export async function getVehicle(id: string) {
     return vehicle;
   } catch (error) {
     console.error("Error fetching vehicle from database:", error);
-    throw new Error(
-      `Database Error: Failed to fetch vehicle. ${error?.message}`
-    );
+    throw new Error(`Database Error: Failed to fetch vehicle. ${error}`);
   }
 }
 //update vehicle by id
@@ -84,8 +82,8 @@ export async function updateVehicle(id: string, vehicleData: any) {
     const db = client.db("uzma");
     const collection = db.collection("vehicles");
 
-    console.log("Model: Updating vehicle:", id);
-    console.log("Model: Update data:", vehicleData);
+    // console.log("Model: Updating vehicle:", id);
+    // console.log("Model: Update data:", vehicleData);
 
     const { _id, ...updateData } = vehicleData;
 
@@ -101,7 +99,7 @@ export async function updateVehicle(id: string, vehicleData: any) {
       },
     });
 
-    console.log("Update result:", result);
+    // console.log("Update result:", result);
     // const result = await collection.updateOne(
     //   { _id: new ObjectId(id) },
     //   { $set: { ...vehicleData, updatedAt: new Date() } }
@@ -136,7 +134,7 @@ export async function deleteVehicle(id: string) {
     const db = client.db("uzma");
     const collection = db.collection("vehicles");
 
-    console.log("Model: Starting delete operation for ID:", id);
+    // console.log("Model: Starting delete operation for ID:", id);
 
     // Try both ObjectId and string queries
     const query = {
@@ -150,18 +148,18 @@ export async function deleteVehicle(id: string) {
       return { success: false, error: "Vehicle not found" };
     }
 
-    console.log("Model: Found vehicle:", vehicle);
+    // console.log("Model: Found vehicle:", vehicle);
 
     // Perform deletion
     const result = await collection.deleteOne({ _id: vehicle._id });
-    console.log("Model: Delete result:", result);
+    // console.log("Model: Delete result:", result);
 
     return {
       success: result.deletedCount > 0,
       deletedCount: result.deletedCount,
     };
   } catch (error) {
-    console.error("Model: Error in deleteVehicle:", error);
+    // console.error("Model: Error in deleteVehicle:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",
