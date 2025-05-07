@@ -335,6 +335,47 @@ export async function fetchBookingById(id: string) {
   }
 }
 
+export async function fetchFilteredInventories(query: string, currentPage: number) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  try {
+    const client = await clientPromise;
+    const db = client.db("uzma");
+    const collection = db.collection("parts");
+
+    const inventories = await collection
+      .find({
+        $or: [
+          { name: { $regex: query, $options: "i" } },
+          { type: { $regex: query, $options: "i" } },
+          { vehicle: { $regex: query, $options: "i" } },
+          { condition: { $regex: query, $options: "i" } },
+        ],
+      })
+      .sort({ name: 1 })
+      .skip(offset)
+      .limit(ITEMS_PER_PAGE)
+      .toArray();
+
+    return inventories.map((item) => ({
+      id: item._id.toString(),
+      name: item.name,
+      type: item.type,
+      vehicle: item.vehicle,
+      condition: item.condition,
+      quantity: item.quantity,
+      price: item.price,
+      expire_date: item.expire_date,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      _id: undefined,
+    }));
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch inventories.");
+  }
+}
+
 
 
 

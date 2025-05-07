@@ -1,12 +1,14 @@
 "use client";
 import {
   ArrowRightStartOnRectangleIcon,
+  CircleStackIcon,
   HomeIcon,
   ShareIcon,
   TruckIcon,
   UsersIcon,
   WrenchScrewdriverIcon,
   BellAlertIcon,
+  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Link from "next/link";
@@ -15,6 +17,12 @@ import { usePathname } from "next/navigation";
 const links = [
   { name: "Home", href: "/dashboard", icon: HomeIcon },
   { name: "Offices", href: "/dashboard/offices", icon: ShareIcon },
+  // {
+  //   name: "Bookings",
+  //   href: "/dashboard/bookings",
+  //   icon: ArrowRightStartOnRectangleIcon,
+  // },
+  { name: "Inventory", href: "/dashboard/inventory", icon: CircleStackIcon },
   {
     name: "Bookings",
     href: "/dashboard/bookings",
@@ -25,6 +33,11 @@ const links = [
   {
     name: "Manage Vehicles",
     href: "/dashboard/vehicles-management",
+    icon: AdjustmentsHorizontalIcon,
+  },
+  {
+    name: "Repair Memo",
+    href: "/dashboard/repair",
     icon: WrenchScrewdriverIcon,
   },
   {

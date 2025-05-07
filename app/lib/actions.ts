@@ -132,6 +132,40 @@ export type BookingState = {
   message?: string | null;
 };
 
+const InventoryFormSchema = z.object({
+  id: z.string(),
+  name: z.string({ invalid_type_error: "Part name is required." }).min(1, "Please write a name."),
+  type: z.string({ invalid_type_error: "Part type is required." }),
+  vehicle: z.string({ invalid_type_error: "Vehicle info is required." }),
+  condition: z.enum(["new", "old"], { invalid_type_error: "Condition is required." }),
+  quantity: z.coerce.number({ invalid_type_error: "Quantity must be a number." }).gt(0, { message: "Please enter a quantity greater than 0." }),
+  price: z.coerce.number({ invalid_type_error: "Price must be a number." }).gt(0, { message: "Please enter an amount greater than ৳0." }),
+  expire_date: z.string().optional(), // ISO string, optional
+});
+
+export type InventoryState = {
+  errors?: {
+    name?: string[];
+    type?: string[];
+    vehicle?: string[];
+    condition?: string[];
+    quantity?: string[];
+    price?: string[];
+    expire_date?: string[];
+  };
+  message?: string | null;
+  values?: {
+    name?: string;
+    type?: string;
+    vehicle?: string;
+    condition?: string;
+    quantity?: string;
+    price?: string;
+    expire_date?: string;
+  }
+};
+
+
 
 // functions
 
@@ -463,6 +497,150 @@ export async function updateBooking(
   }
 }
 
+const CreateInventory = InventoryFormSchema.omit({ id: true });
+export async function createInventory(prevState: InventoryState, formData: FormData) {
+  const validatedFields = CreateInventory.safeParse({
+    name: formData.get("name"),
+    type: formData.get("type"),
+    vehicle: formData.get("vehicle"),
+    condition: formData.get("condition"),
+    quantity: formData.get("quantity"),
+    price: formData.get("price"),
+    expire_date: formData.get("expire_date") || undefined,
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Missing fields. Failed to add part.",
+      values: {
+        name: formData.get("name")?.toString() || "",
+        type: formData.get("type")?.toString() || "",
+        vehicle: formData.get("vehicle")?.toString() || "",
+        condition: formData.get("condition")?.toString() || "",
+        quantity: formData.get("quantity")?.toString() || "",
+        price: formData.get("price")?.toString() || "",
+        expire_date: formData.get("expire_date")?.toString() || "",
+      },
+    };
+  }
+
+  const { name, type, vehicle, condition, quantity, price, expire_date } = validatedFields.data;
+
+  try {
+    const client = await clientPromise;
+    const db = client.db("uzma");
+
+     // Check for duplicate part
+     const duplicate = await db.collection("parts").findOne({
+      name, type, condition,
+    });
+
+    if (duplicate) {
+      return {
+        errors: {
+          name: ["A part with the same name, type, and condition already exists."],
+          type: ["A part with the same name, type, and condition already exists."],
+          condition: ["A part with the same name, type, and condition already exists."],
+        },
+        message: "Duplicate part. Failed to add.",
+        values: {
+          name: formData.get("name")?.toString() || "",
+          type: formData.get("type")?.toString() || "",
+          vehicle: formData.get("vehicle")?.toString() || "",
+          condition: formData.get("condition")?.toString() || "",
+          quantity: formData.get("quantity")?.toString() || "",
+          price: formData.get("price")?.toString() || "",
+          expire_date: formData.get("expire_date")?.toString() || "",
+        },
+      };
+    }
+
+    const partData = {
+      name,
+      type,
+      vehicle,
+      condition,
+      quantity,
+      price,
+      expire_date: expire_date ? new Date(expire_date) : null,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+
+    await db.collection("parts").insertOne(partData);
+
+    revalidatePath("/dashboard/inventory");
+    return { message: "Part added to inventory successfully." };
+  } catch (error) {
+    console.error("Inventory DB Error:", error);
+    return { message: "Database error: Failed to add part." };
+  }
+}
+
+const UpdateInventory = InventoryFormSchema.omit({ id: true });
+export async function updateInventory(
+  id: string,
+  prevState: InventoryState,
+  formData: FormData
+) {
+  const validatedFields = UpdateInventory.safeParse({
+    name: formData.get("name"),
+    type: formData.get("type"),
+    vehicle: formData.get("vehicle"),
+    condition: formData.get("condition"),
+    quantity: formData.get("quantity"),
+    price: formData.get("price"),
+    expire_date: formData.get("expire_date") || undefined,
+  });
+
+  if (!validatedFields.success) {
+    console.log("Validation error:", validatedFields.error.flatten().fieldErrors);
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Missing Fields. Failed to Update Inventory.",
+      values: {
+        name: formData.get("name")?.toString() || "",
+        type: formData.get("type")?.toString() || "",
+        vehicle: formData.get("vehicle")?.toString() || "",
+        condition: formData.get("condition")?.toString() || "",
+        quantity: formData.get("quantity")?.toString() || "",
+        price: formData.get("price")?.toString() || "",
+        expire_date: formData.get("expire_date")?.toString() || "",
+      },
+    };
+  }
+
+  const { name, type, vehicle, condition, quantity, price, expire_date } = validatedFields.data;
+
+  try {
+    const client = await clientPromise;
+    const db = client.db("uzma");
+    const collection = db.collection("parts");
+
+    await collection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          name,
+          type,
+          vehicle,
+          condition,
+          quantity,
+          price,
+          expire_date: expire_date ? new Date(expire_date) : null,
+          updated_at: new Date(),
+        },
+      }
+    );
+
+    revalidatePath("/dashboard/inventory");
+    return { message: "Inventory item updated successfully." };
+  } catch (error) {
+    console.log(error);
+    return { message: "Database Error: Failed to Update Inventory." };
+  }
+}
 
 
 
