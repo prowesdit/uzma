@@ -13,7 +13,7 @@ type UserInfo = {
 export default function TopNav({ userInfo }: { userInfo: UserInfo }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
-  const [hasSeenNotifications, setHasSeenNotifications] = useState(false); // NEW
+  const [hasSeenNotifications, setHasSeenNotifications] = useState(false);
 
   const router = useRouter();
 
