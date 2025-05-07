@@ -102,6 +102,7 @@ export type BookingForm = {
   booking_status: string;
   booking_type: string;
   note: string;
+  created_at: string;
 };
 
 export type InventoryForm = {

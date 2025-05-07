@@ -290,7 +290,7 @@ export async function fetchFilteredBookings(query: string, currentPage: number) 
       booking_status: booking.booking_status,
       booking_type: booking.booking_type,
       note: booking.note,
-      
+      created_at: booking.created_at,
       _id: undefined, // optional: hide the original _id if you want clean objects
     }));
   } catch (error) {

@@ -130,6 +130,7 @@ export type BookingState = {
     booking_type?: string[];
   };
   message?: string | null;
+  voucherData?: object;
 };
 
 const InventoryFormSchema = z.object({
@@ -388,7 +389,7 @@ export async function createBooking(prevState: BookingState, formData: FormData)
     const db = client.db("uzma");
     const collection = db.collection("bookings");
 
-    await collection.insertOne({
+    const ddd = await collection.insertOne({
       customer,
       vehicle,
       driver,
@@ -406,8 +407,28 @@ export async function createBooking(prevState: BookingState, formData: FormData)
       created_at: new Date(),
     });
 
-    revalidatePath("/dashboard/bookings");
-    return { message: "Booking created successfully." };
+    const bookingId = ddd.insertedId.toString();
+
+
+    let voucherData = {
+      bookingNumber: bookingId,
+      customer,
+      vehicle,
+      driver,
+      pickup_address,
+      dropoff_address,
+      pickup_dt: new Date(pickup_dt),
+      dropoff_dt: new Date(dropoff_dt),
+      return_pickup_dt: return_pickup_dt ? new Date(return_pickup_dt) : null,
+      return_dropoff_dt: return_dropoff_dt ? new Date(return_dropoff_dt) : null,
+      passenger_num,
+      payment_status,
+      booking_status,
+      booking_type,
+      note: note || "",
+      created_at: new Date(),
+    };
+    return { message: "Booking created successfully.", voucherData};
   } catch (error) {
     console.log(error);
     return { message: "Database Error: Failed to Create Booking." };
