@@ -10,10 +10,14 @@ import {
 import { Button } from "@/app/ui/button";
 import { BookingState, createBooking } from "@/app/lib/actions";
 import { startTransition, useActionState, useEffect, useState } from "react";
+import { PrintVoucher } from "@/app/lib/pdf/generate-voucher";
 
 export default function CreateBookingForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isReturn, setIsReturn] = useState(false);
+  // with print or not
+  const [printVoucher, setPrintVoucher] = useState("");
+  // form states and functions
   const initialState: BookingState = { message: null, errors: {} };
   const [state, formAction] = useActionState<BookingState, FormData>(
     createBooking,
@@ -37,14 +41,34 @@ export default function CreateBookingForm() {
   }, [state.errors]);
 
   // state.message
+  // useEffect(() => {
+  //   if (state.message === "Booking created successfully.") {
+  //     setIsLoading(false)
+  //     //   window.location.href = "/dashboard/bookings"; // Redirect on the client side
+  //   } else if (state.message !== null) {
+  //     console.error(state.message);
+  //   }
+  // }, [state.message]);
+  // call print invoice when transaction is created successfully
   useEffect(() => {
-    if (state.message === "Booking created successfully.") {
-      setIsLoading(false)
-      //   window.location.href = "/dashboard/bookings"; // Redirect on the client side
-    } else if (state.message !== null) {
-      console.error(state.message);
+    if (state.voucherData && printVoucher === "yes") {
+      
+      
+      const voucherData = state.voucherData;
+      console.log(voucherData)
+      PrintVoucher({voucherData});
+      setIsLoading(false);
+      setPrintVoucher("");
+    } 
+    else if (state.voucherData && printVoucher === "no") {
+      setIsLoading(false);
+      setPrintVoucher("");
     }
-  }, [state.message]);
+    else if (state.message) {
+      // form error or early return
+      setIsLoading(false);
+    }
+  }, [state.voucherData, state.message]);
 
   return (
     <form onSubmit={handleFormSubmit}>
@@ -387,7 +411,7 @@ export default function CreateBookingForm() {
         >
           Cancel
         </Link>
-        <Button type="submit" disabled={isLoading}>
+        {/* <Button type="submit" disabled={isLoading}>
           {isLoading ? (
             <>
               <svg
@@ -414,6 +438,64 @@ export default function CreateBookingForm() {
             </>
           ) : (
             "Create Booking"
+          )}
+        </Button> */}
+        <Button type="submit" disabled={isLoading} className={`${printVoucher === "yes" || printVoucher ==="" ? "" : "hidden"}`} onClick={() => setPrintVoucher("yes")}>
+          {isLoading ? (
+            <>
+              <svg
+                className="animate-spin h-4 w-4 mr-2 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"
+                ></path>
+              </svg>
+              Posting...
+            </>
+          ) : (
+            "Post & Print"
+          )}
+        </Button>
+        <Button type="submit" disabled={isLoading} className={`${printVoucher === "no" || printVoucher ==="" ? "" : "hidden"}`} onClick={() => setPrintVoucher("no")}>
+          {isLoading ? (
+            <>
+              <svg
+                className="animate-spin h-4 w-4 mr-2 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"
+                ></path>
+              </svg>
+              Posting...
+            </>
+          ) : (
+            "Post"
           )}
         </Button>
       </div>

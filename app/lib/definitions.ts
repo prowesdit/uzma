@@ -12,46 +12,11 @@ export type User = {
   created_at: string;
 };
 
-
 export type Revenue = {
   month: string;
   revenue: number;
   year: number;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export type UserTable = {
   id: string;
@@ -102,6 +67,7 @@ export type BookingForm = {
   booking_status: string;
   booking_type: string;
   note: string;
+  created_at: string;
 };
 
 export type InventoryForm = {
@@ -116,18 +82,3 @@ export type InventoryForm = {
   created_at: string;
   updated_at: string;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -17,6 +17,8 @@ interface Vehicle {
   carryingCapacity: string | number;
   fitnessExpirationDate: string;
   licenseExpirationDate: string;
+  taxTokenExpirationDate: string;
+  routePermitExpirationDate: string;
   initialMileage: string | number;
   averageMileage: string | number;
   inService: boolean;
@@ -45,6 +47,8 @@ const VehiclesEntry = () => {
     carryingCapacity: "",
     fitnessExpirationDate: "",
     licenseExpirationDate: "",
+    taxTokenExpirationDate: "",
+    routePermitExpirationDate: "",
     initialMileage: "",
     averageMileage: "",
     inService: false,
@@ -73,6 +77,10 @@ const VehiclesEntry = () => {
             ...data,
             fitnessExpirationDate: data.fitnessExpirationDate?.split("T")[0],
             licenseExpirationDate: data.licenseExpirationDate?.split("T")[0],
+            taxTokenExpirationDate:
+              data.taxTokenExpirationDate?.split("T")[0] || "",
+            routePermitExpirationDate:
+              data.routePermitExpirationDate?.split("T")[0] || "",
             assetFiles: [],
           });
         } catch (error) {
@@ -181,6 +189,8 @@ const VehiclesEntry = () => {
           licenseExpirationDate: "",
           initialMileage: "",
           averageMileage: "",
+          taxTokenExpirationDate: "",
+          routePermitExpirationDate: "",
           inService: false,
           assetFiles: [],
         });
@@ -218,7 +228,10 @@ const VehiclesEntry = () => {
     >
   ) {
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
         {/* Model */}
         <div>
           <label className="block text-sm font-medium">Model</label>
@@ -249,7 +262,7 @@ const VehiclesEntry = () => {
             required
           />
         </div>
-
+        {/* vehicle type */}
         <div>
           <label className="block text-sm font-medium">Type</label>
           <input
@@ -261,7 +274,7 @@ const VehiclesEntry = () => {
             required
           />
         </div>
-
+        {/* Manufacturing Year */}
         <div>
           <label className="block text-sm font-medium">
             Manufacturing Year
@@ -281,7 +294,7 @@ const VehiclesEntry = () => {
             required
           />
         </div>
-
+        {/* Engine Number */}
         <div>
           <label className="block text-sm font-medium">Engine Number</label>
           <input
@@ -295,6 +308,7 @@ const VehiclesEntry = () => {
             required
           />
         </div>
+        {/* Chassis Number */}
         <div>
           <label className="block text-sm font-medium">Chassis Number</label>
           <input
@@ -308,6 +322,8 @@ const VehiclesEntry = () => {
             required
           />
         </div>
+
+        {/* Fuel Type */}
         <div>
           <label className="block text-sm font-medium">Fuel Type</label>
           <input
@@ -321,6 +337,8 @@ const VehiclesEntry = () => {
             required
           />
         </div>
+
+        {/* Owner's Name and Address */}
         <div>
           <label className="block text-sm font-medium">Owner's Name</label>
           <input
@@ -334,7 +352,7 @@ const VehiclesEntry = () => {
             required
           />
         </div>
-
+        {/* Owner's Address */}
         <div>
           <label className="block text-sm font-medium">Owner's Address</label>
           <textarea
@@ -348,7 +366,7 @@ const VehiclesEntry = () => {
             required
           ></textarea>
         </div>
-
+        {/* Carrying Capacity */}
         <div>
           <label className="block text-sm font-medium">
             Carrying Capacity(Ton)
@@ -369,6 +387,7 @@ const VehiclesEntry = () => {
           />
         </div>
 
+        {/*Fitness Expiration Dates */}
         <div>
           <label className="block text-sm font-medium">
             Fitness Expiration Date
@@ -389,6 +408,7 @@ const VehiclesEntry = () => {
           />
         </div>
 
+        {/* Liscense Exp date */}
         <div>
           <label className="block text-sm font-medium">
             License Expiration Date
@@ -408,6 +428,49 @@ const VehiclesEntry = () => {
             required
           />
         </div>
+        {/* Tax Token Expiration Date */}
+        <div>
+          <label className="block text-sm font-medium">
+            Tax Token Expiration Date
+          </label>
+          <input
+            name="taxTokenExpirationDate"
+            type="date"
+            value={formData.taxTokenExpirationDate}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                taxTokenExpirationDate: e.target.value,
+              })
+            }
+            placeholder="Tax Token Expiration Date"
+            className="w-full border px-2 py-1 rounded"
+            required
+          />
+        </div>
+
+        {/* Route Permit Expiration Date */}
+        <div>
+          <label className="block text-sm font-medium">
+            Route Permit Expiration Date
+          </label>
+          <input
+            name="routePermitExpirationDate"
+            type="date"
+            value={formData.routePermitExpirationDate}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                routePermitExpirationDate: e.target.value,
+              })
+            }
+            placeholder="Route Permit Expiration Date"
+            className="w-full border px-2 py-1 rounded"
+            required
+          />
+        </div>
+
+        {/* Initial Mileage and Average Mileage */}
         <div>
           <label className="block text-sm font-medium">
             Initial Mileage / Litre
@@ -424,7 +487,6 @@ const VehiclesEntry = () => {
             }
             placeholder="Initial Mileage / Litre"
             className="w-full border px-2 py-1 rounded"
-            required
           />
         </div>
         <div>
@@ -443,9 +505,9 @@ const VehiclesEntry = () => {
             }
             placeholder="Average Mileage / Litre"
             className="w-full border px-2 py-1 rounded"
-            required
           />
         </div>
+        {/* In Service Checkbox */}
         <div className="flex items-center space-x-2">
           <label className="block text-sm font-medium">onTrip?</label>
           <input
@@ -458,6 +520,7 @@ const VehiclesEntry = () => {
             className="h-5 w-5 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
           />
         </div>
+        {/* File Upload */}
         <div>
           <label htmlFor="assetFiles" className="block text-sm font-medium">
             Upload Vehicles Document
@@ -513,7 +576,7 @@ const VehiclesEntry = () => {
         )}
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded"
+          className="px-4 py-2 bg-blue-600 text-white rounded "
           disabled={isSubmitting}
         >
           {isSubmitting
@@ -531,7 +594,7 @@ const VehiclesEntry = () => {
 
   // --- MAIN RENDER ---
   return (
-    <div className="flex flex-col items-center p-6 w-2/3 mx-auto rounded-md shadow-md bg-white">
+    <div className="flex flex-col items-center p-6 w-1/2 mx-auto rounded-md shadow-md bg-white">
       <h1 className="text-2xl font-bold mb-4">
         {mode === "edit" ? "Edit Vehicle" : "Vehicle Entry Form"}
       </h1>

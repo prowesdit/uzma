@@ -11,6 +11,7 @@ import { useState } from "react";
 import { UpdateBookingModal } from "./update-booking-modal";
 import { BookingForm } from "@/app/lib/definitions";
 import { formatDateToLocal } from "@/app/lib/utils";
+import { PrintVoucherButton } from "./buttons";
 
 export default function BookingsTable({
   bookings,
@@ -35,9 +36,38 @@ export default function BookingsTable({
                   className="mb-2 w-full rounded-md bg-white p-4 shadow-sm border"
                 >
                   {/* Header */}
-                  <div className="mb-2">
-                    <p className="font-semibold">{booking.customer}</p>
-                    <p className="text-sm text-gray-500">{booking.vehicle}</p>
+                  <div className="mb-2 flex justify-between">
+                    <div>
+                      <p className="font-semibold">{booking.customer}</p>
+                      <p className="text-sm text-gray-500">{booking.vehicle}</p>
+                    </div>
+                    {/* edit and print buttons */}
+                    <div>
+                      <div className="flex justify-end gap-3">
+                        <button
+                          type="button"
+                          className="flex items-center space-x-1 text-sm font-medium text-teal-400 hover:text-teal-700"
+                          onClick={() => {
+                            setShowUpdateBookingModal(true);
+                            setSelectedBooking(booking);
+                          }}
+                        >
+                          <PencilIcon
+                            className="w-5 h-5"
+                            title="Edit Challan"
+                          />
+                        </button>
+                        <PrintVoucherButton booking={booking} />
+                      </div>
+                      {showUpdateBookingModal &&
+                      selectedBooking &&
+                      selectedBooking.id === booking.id ? (
+                        <UpdateBookingModal
+                          setShowUpdateBookingModal={setShowUpdateBookingModal}
+                          booking={booking}
+                        />
+                      ) : null}
+                    </div>
                   </div>
 
                   {/* Pickup → Dropoff */}
@@ -240,8 +270,12 @@ export default function BookingsTable({
                             setSelectedBooking(booking);
                           }}
                         >
-                          <PencilIcon className="w-5 h-5" />
+                          <PencilIcon
+                            className="w-5 h-5"
+                            title="Edit Challan"
+                          />
                         </button>
+                        <PrintVoucherButton booking={booking} />
                       </div>
                       {showUpdateBookingModal &&
                       selectedBooking &&
