@@ -21,6 +21,8 @@ export async function createVehicle(vehicleData: {
   carryingCapacity: number;
   fitnessExpirationDate: string;
   licenseExpirationDate: string;
+  taxTokenExpirationDate: string;
+  routePermitExpirationDate: string;
   initialMileage: number;
   averageMileage: number;
   inService: boolean;
@@ -41,6 +43,12 @@ export async function createVehicle(vehicleData: {
       carryingCapacity,
       fitnessExpirationDate,
       licenseExpirationDate,
+      taxTokenExpirationDate,
+      routePermitExpirationDate,
+      initialMileage,
+      averageMileage,
+      inService,
+      assetFileUrl,
     } = vehicleData;
 
     if (
@@ -55,7 +63,12 @@ export async function createVehicle(vehicleData: {
       !ownerAddress ||
       !carryingCapacity ||
       !fitnessExpirationDate ||
-      !licenseExpirationDate
+      !licenseExpirationDate ||
+      !taxTokenExpirationDate ||
+      !routePermitExpirationDate ||
+      !initialMileage ||
+      !averageMileage ||
+      inService === undefined // Check for inService explicitly
     ) {
       return { success: false, error: "All fields are required." };
     }
@@ -117,9 +130,9 @@ export async function getAllVehicles() {
 // Function to delete a vehicle by ID
 export async function deleteVehicleById(id: string) {
   try {
-    const objectId = new ObjectId(id); // Convert to ObjectId
+    // const objectId = new ObjectId(id); // Convert to ObjectId
 
-    const result = await deleteVehicle(objectId);
+    const result = await deleteVehicle(id);
     return result;
   } catch (error) {
     console.error("Error in deleteVehicleById controller:", error);
@@ -170,6 +183,8 @@ export async function updateVehicleById(
     carryingCapacity?: number;
     fitnessExpirationDate?: string;
     licenseExpirationDate?: string;
+    taxTokenExpirationDate: string; // <-- NEW
+    routePermitExpirationDate: string; // <-- NEW
     initialMileage?: number;
     averageMileage?: number;
     inService?: boolean;
@@ -191,6 +206,8 @@ export async function updateVehicleById(
       carryingCapacity: vehicleData.carryingCapacity || 0,
       fitnessExpirationDate: vehicleData.fitnessExpirationDate || "",
       licenseExpirationDate: vehicleData.licenseExpirationDate || "",
+      taxTokenExpirationDate: vehicleData.taxTokenExpirationDate || "",
+      routePermitExpirationDate: vehicleData.routePermitExpirationDate || "",
       initialMileage: vehicleData.initialMileage || 0,
       averageMileage: vehicleData.averageMileage || 0,
       inService: vehicleData.inService || false,

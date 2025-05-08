@@ -17,24 +17,22 @@ import { usePathname } from "next/navigation";
 const links = [
   { name: "Home", href: "/dashboard", icon: HomeIcon },
   { name: "Offices", href: "/dashboard/offices", icon: ShareIcon },
-  // {
-  //   name: "Bookings",
-  //   href: "/dashboard/bookings",
-  //   icon: ArrowRightStartOnRectangleIcon,
-  // },
-  { name: "Inventory", href: "/dashboard/inventory", icon: CircleStackIcon },
-  {
-    name: "Bookings",
-    href: "/dashboard/bookings",
-    icon: ArrowRightStartOnRectangleIcon,
-  },
-  { name: "Users", href: "/dashboard/users", icon: UsersIcon },
   { name: "Add Vehicle", href: "/dashboard/vehicles-entry", icon: TruckIcon },
+
   {
     name: "Manage Vehicles",
     href: "/dashboard/vehicles-management",
     icon: AdjustmentsHorizontalIcon,
   },
+
+  {
+    name: "Bookings",
+    href: "/dashboard/bookings",
+    icon: ArrowRightStartOnRectangleIcon,
+  },
+
+  { name: "Inventory", href: "/dashboard/inventory", icon: CircleStackIcon },
+
   {
     name: "Repair Memo",
     href: "/dashboard/repair",
@@ -45,6 +43,7 @@ const links = [
     href: "/dashboard/notification",
     icon: BellAlertIcon,
   },
+  { name: "Users", href: "/dashboard/users", icon: UsersIcon },
 ];
 
 export default function NavLinks({ userRole }: { userRole: string | null }) {

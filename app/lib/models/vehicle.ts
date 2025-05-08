@@ -13,6 +13,8 @@ export async function insertVehicle(vehicleData: {
   carryingCapacity: number;
   fitnessExpirationDate: string;
   licenseExpirationDate: string;
+  taxTokenExpirationDate: string;
+  routePermitExpirationDate: string;
   initialMileage: number;
   averageMileage: number;
   inService: boolean;
