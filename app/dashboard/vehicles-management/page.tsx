@@ -21,9 +21,12 @@ interface Vehicle {
   carryingCapacity: string | number;
   fitnessExpirationDate: string;
   licenseExpirationDate: string;
+  taxTokenExpirationDate?: string;
+  routePermitExpirationDate?: string;
   initialMileage: string | number;
   averageMileage: string | number;
   inService: boolean;
+  mobileNumber?: string;
   assetFiles?: File[];
   assetFileUrl?: string;
 }
@@ -42,9 +45,13 @@ const initialVehicleState: Vehicle = {
   carryingCapacity: 0,
   fitnessExpirationDate: "",
   licenseExpirationDate: "",
+  taxTokenExpirationDate: "",
+  routePermitExpirationDate: "",
+
   initialMileage: 0,
   averageMileage: 0,
   inService: false,
+  mobileNumber: "",
   assetFiles: [] as File[],
 };
 
@@ -226,7 +233,10 @@ const VehiclesManagement = () => {
             type="number"
             value={formData.manufacturingYear}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, type: e.target.value }))
+              setFormData((prev) => ({
+                ...prev,
+                manufacturingYear: e.target.value,
+              }))
             }
             className="w-full px-4 py-2 border rounded-md"
           />
@@ -237,7 +247,7 @@ const VehiclesManagement = () => {
             type="text"
             value={formData.engineNumber}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, type: e.target.value }))
+              setFormData((prev) => ({ ...prev, engineNumber: e.target.value }))
             }
             className="w-full px-4 py-2 border rounded-md"
           />
@@ -248,7 +258,10 @@ const VehiclesManagement = () => {
             type="text"
             value={formData.chassisNumber}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, type: e.target.value }))
+              setFormData((prev) => ({
+                ...prev,
+                chassisNumber: e.target.value,
+              }))
             }
             className="w-full px-4 py-2 border rounded-md"
           />
@@ -259,7 +272,7 @@ const VehiclesManagement = () => {
             type="text"
             value={formData.fuelType}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, type: e.target.value }))
+              setFormData((prev) => ({ ...prev, fuelType: e.target.value }))
             }
             className="w-full px-4 py-2 border rounded-md"
           />
@@ -270,7 +283,7 @@ const VehiclesManagement = () => {
             type="text"
             value={formData.ownerName}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, type: e.target.value }))
+              setFormData((prev) => ({ ...prev, ownerName: e.target.value }))
             }
             className="w-full px-4 py-2 border rounded-md"
           />
@@ -281,7 +294,7 @@ const VehiclesManagement = () => {
             type="text"
             value={formData.ownerAddress}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, type: e.target.value }))
+              setFormData((prev) => ({ ...prev, ownerAddress: e.target.value }))
             }
             className="w-full px-4 py-2 border rounded-md"
           />
@@ -329,6 +342,39 @@ const VehiclesManagement = () => {
           />
         </div>
         <div className="mb-4">
+          <label className="block text-gray-700">
+            Tax Token Expiration Date
+          </label>
+          <input
+            type="date"
+            value={formData.taxTokenExpirationDate}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                taxTokenExpirationDate: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">
+            Route Permit Expiration Date
+          </label>
+          <input
+            type="date"
+            value={formData.routePermitExpirationDate}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                routePermitExpirationDate: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+
+        <div className="mb-4">
           <label className="block text-gray-700">Initial Mileage</label>
           <input
             type="number"
@@ -351,6 +397,20 @@ const VehiclesManagement = () => {
               setFormData((prev) => ({
                 ...prev,
                 averageMileage: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Mobile Number</label>
+          <input
+            type="text"
+            value={formData.mobileNumber}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                mobileNumber: e.target.value,
               }))
             }
             className="w-full px-4 py-2 border rounded-md"
@@ -386,6 +446,18 @@ const VehiclesManagement = () => {
             }
             className="w-full px-4 py-2 border rounded-md"
           />
+          {formData.assetFileUrl && (
+            <div className="mt-2">
+              <a
+                href={formData.assetFileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                View Current File
+              </a>
+            </div>
+          )}
         </div>
         <button
           type="submit"

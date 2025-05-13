@@ -1,13 +1,16 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { TrashIcon } from "@heroicons/react/24/outline";
-
+// import { sendSmsNotification } from "../../lib/twilio/twilioServer";
 interface Vehicle {
   _id: string;
   model: string;
   registrationNumber: string;
   licenseExpirationDate: string;
   fitnessExpirationDate: string;
+  taxTokenExpirationDate?: string;
+  routePermitExpirationDate?: string;
+  mobileNumber?: string; // Add this field
 }
 
 const getDaysLeft = (dateStr: string): number => {
@@ -64,6 +67,42 @@ const NotificationPage = () => {
     setRemoved(updated);
     localStorage.setItem(REMOVED_KEY, JSON.stringify(updated));
   };
+
+  // Helper to check if expired
+  const isExpired = (dateStr?: string) =>
+    dateStr ? getDaysLeft(dateStr) <= 0 : false;
+
+  // Send SMS if expired
+  useEffect(() => {
+    expiringSoon.forEach((v) => {
+      if (!v.mobileNumber) return;
+
+      let expiredFields: string[] = [];
+      if (isExpired(v.licenseExpirationDate)) expiredFields.push("লাইসেন্স");
+      if (isExpired(v.fitnessExpirationDate)) expiredFields.push("ফিটনেস");
+      if (isExpired(v.taxTokenExpirationDate))
+        expiredFields.push("ট্যাক্স টোকেন");
+      if (isExpired(v.routePermitExpirationDate))
+        expiredFields.push("রুট পারমিট");
+
+      if (expiredFields.length > 0) {
+        const msg = `গাড়ি ${v.registrationNumber} এর ${expiredFields.join(
+          ", "
+        )} মেয়াদ শেষ হয়েছে। দয়া করে দ্রুত নবায়ন করুন।`;
+
+        (async () => {
+          console.log("Sending SMS:", msg);
+          await fetch("/api/send-sms", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ to: "+8801960238723", message: msg }),
+          });
+        })();
+      }
+    });
+    // Only run once after vehicles are loaded
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   return (
     <div className="p-6">

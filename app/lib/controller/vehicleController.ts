@@ -26,6 +26,7 @@ export async function createVehicle(vehicleData: {
   initialMileage: number;
   averageMileage: number;
   inService: boolean;
+  mobileNumber?: string;
   assetFileUrl?: string;
 }) {
   try {
@@ -48,6 +49,7 @@ export async function createVehicle(vehicleData: {
       initialMileage,
       averageMileage,
       inService,
+      mobileNumber,
       assetFileUrl,
     } = vehicleData;
 
@@ -68,6 +70,7 @@ export async function createVehicle(vehicleData: {
       !routePermitExpirationDate ||
       !initialMileage ||
       !averageMileage ||
+      !mobileNumber ||
       inService === undefined // Check for inService explicitly
     ) {
       return { success: false, error: "All fields are required." };
