@@ -89,6 +89,8 @@ export type OfficeForm = {
 export type BookingForm = {
   id: string;
   customer: string;
+  customer_bin: string;
+  customer_address: string;
   vehicle: string;
   driver: string;
   pickup_address: string;
@@ -102,6 +104,7 @@ export type BookingForm = {
   booking_status: string;
   booking_type: string;
   note: string;
+  challan_data: JSON;
   created_at: string;
 };
 

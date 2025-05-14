@@ -248,6 +248,7 @@ export async function fetchBookingsPages(query: string) {
 }
 
 export async function fetchFilteredBookings(query: string, currentPage: number) {
+  console.log(query)
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
@@ -277,6 +278,8 @@ export async function fetchFilteredBookings(query: string, currentPage: number) 
     return bookings.map(booking => ({
       id: booking._id.toString(), // ObjectId to string
       customer: booking.customer,
+      customer_bin: booking.customer_bin,
+      customer_address: booking.customer_address,
       vehicle: booking.vehicle,
       driver: booking.driver,
       pickup_address: booking.pickup_address,
@@ -290,6 +293,7 @@ export async function fetchFilteredBookings(query: string, currentPage: number) 
       booking_status: booking.booking_status,
       booking_type: booking.booking_type,
       note: booking.note,
+      challan_data: booking.challan_data,
       created_at: booking.created_at,
       _id: undefined, // optional: hide the original _id if you want clean objects
     }));

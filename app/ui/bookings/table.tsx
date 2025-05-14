@@ -6,6 +6,7 @@ import {
   CalendarDaysIcon,
   MapPinIcon,
   PencilIcon,
+  TruckIcon,
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { UpdateBookingModal } from "./update-booking-modal";
@@ -164,9 +165,9 @@ export default function BookingsTable({
             <table className="hidden min-w-full text-gray-900 md:table">
               <thead className="rounded-lg text-left text-sm font-normal">
                 <tr>
-                  <th className="px-4 py-5 font-medium sm:pl-6">Customer</th>
+                  <th className="px-4 py-5 font-medium">#</th>
+                  <th className="px-4 py-5 font-medium">Customer</th>
                   <th className="px-3 py-5 font-medium">Vehicle</th>
-                  <th className="px-3 py-5 font-medium">Driver</th>
                   <th className="px-3 py-5 font-medium">Pickup / Dropoff</th>
                   <th className="px-3 py-5 font-medium">Passengers</th>
                   <th className="px-3 py-5 font-medium">Payment Status</th>
@@ -182,14 +183,18 @@ export default function BookingsTable({
                     key={booking.id}
                     className="border-b last-of-type:border-none"
                   >
-                    <td className="whitespace-nowrap px-4 py-4 sm:pl-6">
+                    <td className="whitespace-nowrap px-4 py-4">
+                      <span className="text-xs text-gray-500">{booking.id}</span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4">
                       {booking.customer}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4">
                       {booking.vehicle}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-4">
+                      <span className="text-xs text-gray-500 flex items-center gap-1">
+                      <TruckIcon className="w-3 h-3" />
                       {booking.driver}
+                      </span>
                     </td>
 
                     <td className="whitespace-nowrap px-3 py-4">
