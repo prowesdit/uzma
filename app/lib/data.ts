@@ -270,7 +270,7 @@ export async function fetchFilteredBookings(query: string, currentPage: number) 
           { note: { $regex: query, $options: "i" } },
         ],
       })
-      .sort({ pickup_dt: -1 }) // newest bookings first
+      .sort({ created_at: -1 }) // newest issue first
       .skip(offset)
       .limit(ITEMS_PER_PAGE)
       .toArray();
@@ -295,6 +295,7 @@ export async function fetchFilteredBookings(query: string, currentPage: number) 
       note: booking.note,
       challan_data: booking.challan_data,
       created_at: booking.created_at,
+      updated_at: booking.updated_at,
       _id: undefined, // optional: hide the original _id if you want clean objects
     }));
   } catch (error) {

@@ -502,6 +502,7 @@ export async function createBooking(prevState: BookingState, formData: FormData)
       note: note || "",
       challan_data,
       created_at: new Date(),
+      updated_at: null
     });
 
     const bookingId = ddd.insertedId.toString();
@@ -543,6 +544,8 @@ export async function updateBooking(
 ) {
   const validatedFields = UpdateBooking.safeParse({
     customer: formData.get("customer"),
+    customer_bin: formData.get("customer_bin")?.toString() || "",
+    customer_address: formData.get("customer_address")?.toString() || "",
     vehicle: formData.get("vehicle"),
     driver: formData.get("driver"),
     pickup_address: formData.get("pickup_address"),
@@ -556,6 +559,7 @@ export async function updateBooking(
     booking_status: formData.get("booking_status"),
     booking_type: formData.get("booking_type"),
     note: formData.get("note") || undefined,
+    challan_data: JSON.parse(formData.get("challan_data") as string)
   });
 
   if (!validatedFields.success) {
@@ -563,11 +567,32 @@ export async function updateBooking(
     return {
       errors: validatedFields.error.flatten().fieldErrors,
       message: "Missing Fields. Failed to Update Booking.",
+      values: {
+        customer: formData.get("customer")?.toString() || "",
+        customer_bin: formData.get("customer_bin")?.toString() || "",
+        customer_address: formData.get("customer_address")?.toString() || "",
+        vehicle: formData.get("vehicle")?.toString() || "",
+        driver: formData.get("driver")?.toString() || "",
+        pickup_address: formData.get("pickup_address")?.toString() || "",
+        dropoff_address: formData.get("dropoff_address")?.toString() || "",
+        pickup_dt: formData.get("pickup_dt")?.toString() || "",
+        dropoff_dt: formData.get("dropoff_dt")?.toString() || "",
+        return_pickup_dt: formData.get("return_pickup_dt")?.toString() || undefined,
+        return_dropoff_dt: formData.get("return_dropoff_dt")?.toString() || undefined,
+        passenger_num: formData.get("passenger_num")?.toString() || "",
+        payment_status: formData.get("payment_status")?.toString() || "",
+        booking_status: formData.get("booking_status")?.toString() || "",
+        booking_type: formData.get("booking_type")?.toString() || "",
+        note: formData.get("note")?.toString() || undefined,
+        challan_data: JSON.parse(formData.get("challan_data") as string),
+      }
     };
   }
 
   const {
     customer,
+    customer_bin,
+    customer_address,
     vehicle,
     driver,
     pickup_address,
@@ -581,6 +606,7 @@ export async function updateBooking(
     booking_status,
     booking_type,
     note,
+    challan_data
   } = validatedFields.data;
 
   try {
@@ -592,7 +618,9 @@ export async function updateBooking(
       { _id: new ObjectId(id) },
       {
         $set: {
-          customer: customer,
+          customer,
+          customer_bin,
+          customer_address,
           vehicle,
           driver,
           pickup_address,
@@ -606,6 +634,8 @@ export async function updateBooking(
           booking_status,
           booking_type,
           note,
+          challan_data,
+          updated_at: new Date()
         },
       }
     );

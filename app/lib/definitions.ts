@@ -106,6 +106,7 @@ export type BookingForm = {
   note: string;
   challan_data: JSON;
   created_at: string;
+  updated_at: string;
 };
 
 export type InventoryForm = {

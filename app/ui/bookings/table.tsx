@@ -184,7 +184,16 @@ export default function BookingsTable({
                     className="border-b last-of-type:border-none"
                   >
                     <td className="whitespace-nowrap px-4 py-4">
-                      <span className="text-xs text-gray-500">{booking.id}</span>
+                      <span className="text-xs">{booking.id}</span> <br />
+                      <span className="text-xs text-gray-500">
+                        Issued at {formatDateToLocal(booking.created_at)}
+                      </span>
+                      {booking?.updated_at  ? (
+                        <>
+                          <br />
+                          <span className="text-xs text-gray-500">Updated at {formatDateToLocal(booking.updated_at)}</span>
+                        </>
+                      ) : ("")}
                     </td>
                     <td className="whitespace-nowrap px-4 py-4">
                       {booking.customer}
@@ -192,8 +201,8 @@ export default function BookingsTable({
                     <td className="whitespace-nowrap px-3 py-4">
                       {booking.vehicle}
                       <span className="text-xs text-gray-500 flex items-center gap-1">
-                      <TruckIcon className="w-3 h-3" />
-                      {booking.driver}
+                        <TruckIcon className="w-3 h-3" />
+                        {booking.driver}
                       </span>
                     </td>
 

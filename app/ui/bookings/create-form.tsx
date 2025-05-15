@@ -40,6 +40,9 @@ export default function CreateBookingForm() {
   // with print or not
   const [printVoucher, setPrintVoucher] = useState("");
 
+  
+
+  // states and functions for challan data field 
   const [challans, setChallans] = useState<ChallanData[]>([
     {
       item_detail: "",
@@ -54,8 +57,6 @@ export default function CreateBookingForm() {
       total_price_with_tax: 0,
     },
   ]);
-
-  //
   const handleItemChange = (
     index: number,
     field: string,
