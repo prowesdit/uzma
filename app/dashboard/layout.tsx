@@ -4,7 +4,11 @@ import TopNav from "../ui/dashboard/topnav";
 
 // export const experimental_ppr = true;
 
-export default async function Layout({ children }: { children: React.ReactNode }) {
+export default async function Layout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const session = await auth();
   let userInfo = null;
   if (session?.user?.email) {
@@ -16,7 +20,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
         <SideNav />
       </div>
       <div className="flex-grow p-6 md:overflow-y-auto md:p-12">
-        {userInfo && <TopNav userInfo={userInfo}/>}
+        {userInfo && <TopNav userInfo={userInfo} />}
         {children}
       </div>
     </div>

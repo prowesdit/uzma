@@ -240,7 +240,7 @@ const VehiclesEntry = () => {
     return (
       <form
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-4"
       >
         {/* Model */}
         <div>
@@ -621,7 +621,7 @@ const VehiclesEntry = () => {
 
   // --- MAIN RENDER ---
   return (
-    <div className="flex flex-col items-center p-6 w-1/2 mx-auto rounded-md shadow-md bg-white">
+    <div className="flex flex-col items-center p-6 md:w-3/4 lg:w-2/3 mx-auto rounded-md shadow-md bg-white">
       <h1 className="text-2xl font-bold mb-4">
         {mode === "edit" ? "Edit Vehicle" : "Vehicle Entry Form"}
       </h1>

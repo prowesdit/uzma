@@ -1,6 +1,8 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { TrashIcon } from "@heroicons/react/24/outline";
+import { get } from "http";
+
 // import { sendSmsNotification } from "../../lib/twilio/twilioServer";
 interface Vehicle {
   _id: string;
@@ -24,17 +26,21 @@ const getDaysLeft = (dateStr: string): number => {
 };
 
 const REMOVED_KEY = "removedNotifications";
+const POLL_INTERVAL = 10 * 60 * 1000; // 10 minutes
 
 const NotificationPage = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [removed, setRemoved] = useState<string[]>([]);
+  const notifiedRef = useRef<Set<string>>(new Set()); // To avoid duplicate SMS
+
   // Load removed notifications from localStorage
   useEffect(() => {
     const removedIds = JSON.parse(localStorage.getItem(REMOVED_KEY) || "[]");
     setRemoved(removedIds);
   }, []);
 
+  // Fetch vehicles on mount and at intervals
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
@@ -48,6 +54,8 @@ const NotificationPage = () => {
       }
     };
     fetchVehicles();
+    const interval = setInterval(fetchVehicles, POLL_INTERVAL);
+    return () => clearInterval(interval);
   }, []);
 
   // Filter out removed notifications
@@ -58,7 +66,13 @@ const NotificationPage = () => {
       (getDaysLeft(v.licenseExpirationDate) !== null &&
         getDaysLeft(v.licenseExpirationDate)! <= 30) ||
       (getDaysLeft(v.fitnessExpirationDate) !== null &&
-        getDaysLeft(v.fitnessExpirationDate)! <= 30)
+        getDaysLeft(v.fitnessExpirationDate)! <= 30) ||
+      (v.taxTokenExpirationDate !== undefined &&
+        getDaysLeft(v.taxTokenExpirationDate) !== null &&
+        getDaysLeft(v.taxTokenExpirationDate)! <= 30) ||
+      (v.routePermitExpirationDate !== undefined &&
+        getDaysLeft(v.routePermitExpirationDate) !== null &&
+        getDaysLeft(v.routePermitExpirationDate)! <= 30)
   );
 
   // Remove notification and persist in localStorage
@@ -72,7 +86,7 @@ const NotificationPage = () => {
   const isExpired = (dateStr?: string) =>
     dateStr ? getDaysLeft(dateStr) <= 0 : false;
 
-  // Send SMS if expired
+  // Auto notification effect (runs on vehicles update)
   useEffect(() => {
     expiringSoon.forEach((v) => {
       if (!v.mobileNumber) return;
@@ -85,28 +99,28 @@ const NotificationPage = () => {
       if (isExpired(v.routePermitExpirationDate))
         expiredFields.push("রুট পারমিট");
 
-      if (expiredFields.length > 0) {
+      // Only notify if not already notified in this session
+      if (expiredFields.length > 0 && !notifiedRef.current.has(v._id)) {
         const msg = `গাড়ি ${v.registrationNumber} এর ${expiredFields.join(
           ", "
         )} মেয়াদ শেষ হয়েছে। দয়া করে দ্রুত নবায়ন করুন।`;
 
         (async () => {
-          console.log("Sending SMS:", msg);
           await fetch("/api/send-sms", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ to: "+8801960238723", message: msg }),
+            body: JSON.stringify({ to: v.mobileNumber, message: msg }),
           });
+          notifiedRef.current.add(v._id);
         })();
       }
     });
-    // Only run once after vehicles are loaded
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading]);
+  }, [expiringSoon]);
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Notifications</h1>
+
       {loading ? (
         <div>Loading...</div>
       ) : expiringSoon.length === 0 ? (

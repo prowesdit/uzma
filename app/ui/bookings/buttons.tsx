@@ -30,6 +30,8 @@ export function PrintVoucherButton({
     const voucherData: any = {
       bookingNumber: booking.id,
       customer: booking.customer,
+      customer_bin: booking.customer_bin,
+      customer_address: booking.customer_address,
       vehicle: booking.vehicle,
       driver: booking.driver,
       pickup_address: booking.pickup_address,
@@ -43,6 +45,7 @@ export function PrintVoucherButton({
       booking_status: booking.booking_status,
       booking_type: booking.booking_type,
       note: booking.note,
+      challan_data: booking.challan_data,
       created_at: booking.created_at,
     };
 

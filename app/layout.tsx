@@ -1,14 +1,14 @@
-import '@/app/ui/global.css'
-import { inter } from './ui/fonts';
-import { Metadata } from 'next';
+import "@/app/ui/global.css";
+import { inter } from "./ui/fonts";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | UZMA  Dashboard',
-    default: 'UZMA Dashboard',
+    template: "%s | UZMA  Dashboard",
+    default: "UZMA Dashboard",
   },
-  description: 'Transportation Accounting System powered by Prowesd IT',
-}
+  description: "Transportation Accounting System powered by Prowesd IT",
+};
 
 export default function RootLayout({
   children,
