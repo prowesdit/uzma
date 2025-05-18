@@ -14,6 +14,13 @@ function isExpired(dateStr?: string) {
   return new Date(dateStr) < new Date();
 }
 
+function daysLeft(dateStr?: string): number {
+  if (!dateStr) return 0;
+  const today = new Date();
+  const exp = new Date(dateStr);
+  return Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
 export async function createVehicle(vehicleData: {
   model: string;
   registrationNumber: string;
@@ -245,7 +252,7 @@ export async function updateVehicleById(
         } এর ${expiredFields.join(", ")} ${
           expiredFields.length > 1 ? "সমূহের" : "এর"
         } মেয়াদ শেষ হতে চলেছে। দয়া করে ৩০ দিনের মধ্যে নবায়ন করুন।`,
-        vehicleId: id,
+        vehicleId: vehicleId,
       });
     }
 

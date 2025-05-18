@@ -1,10 +1,16 @@
 import clientPromise from "@/app/lib/db/mongodb";
 import { ObjectId } from "mongodb";
 import { getIO } from "@/app/lib/socket"; // See step 2 for this helper
-
 function isExpired(dateStr?: string) {
   if (!dateStr) return false;
   return new Date(dateStr) < new Date();
+}
+
+function daysLeft(dateStr?: string): number {
+  if (!dateStr) return 0;
+  const today = new Date();
+  const exp = new Date(dateStr);
+  return Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 export async function insertVehicle(vehicleData: {
