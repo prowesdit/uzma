@@ -1,4 +1,5 @@
 import { auth, getUser } from "@/auth";
+import NotificationListener from "@/app/ui/NotificationListener";
 import SideNav from "../ui/dashboard/sidenav";
 import TopNav from "../ui/dashboard/topnav";
 
@@ -21,6 +22,17 @@ export default async function Layout({
       </div>
       <div className="flex-grow p-6 md:overflow-y-auto md:p-12">
         {userInfo && <TopNav userInfo={userInfo} />}
+        {/* Request notification permission on mount */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (window.Notification && Notification.permission !== "granted") {
+                Notification.requestPermission();
+              }
+            `,
+          }}
+        />
+        <NotificationListener />
         {children}
       </div>
     </div>

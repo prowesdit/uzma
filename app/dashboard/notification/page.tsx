@@ -168,6 +168,38 @@ const NotificationPage = () => {
                     </div>
                   )
                 )}
+                {v.taxTokenExpirationDate &&
+                  (getDaysLeft(v.taxTokenExpirationDate)! <= 0 ? (
+                    <div className="text-red-600">
+                      Tax Token expired before{" "}
+                      {Math.abs(getDaysLeft(v.taxTokenExpirationDate))} day(s) (
+                      {v.taxTokenExpirationDate})
+                    </div>
+                  ) : (
+                    getDaysLeft(v.taxTokenExpirationDate)! <= 30 && (
+                      <div className="text-red-600">
+                        Tax Token will expire within{" "}
+                        {getDaysLeft(v.taxTokenExpirationDate)} day(s) (
+                        {v.taxTokenExpirationDate})
+                      </div>
+                    )
+                  ))}
+                {v.routePermitExpirationDate &&
+                  (getDaysLeft(v.routePermitExpirationDate)! <= 0 ? (
+                    <div className="text-red-600">
+                      Route Permit expired before{" "}
+                      {Math.abs(getDaysLeft(v.routePermitExpirationDate))}{" "}
+                      day(s) ({v.routePermitExpirationDate})
+                    </div>
+                  ) : (
+                    getDaysLeft(v.routePermitExpirationDate)! <= 30 && (
+                      <div className="text-red-600">
+                        Route Permit will expire within{" "}
+                        {getDaysLeft(v.routePermitExpirationDate)} day(s) (
+                        {v.routePermitExpirationDate})
+                      </div>
+                    )
+                  ))}
               </div>
               {/* Remove Button */}
               <button
