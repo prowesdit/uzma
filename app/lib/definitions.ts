@@ -104,7 +104,9 @@ export type BookingForm = {
   booking_status: string;
   booking_type: string;
   note: string;
+  credit_amount: string;
   challan_data: JSON;
+  delivery_costs_data: JSON;
   created_at: string;
   updated_at: string;
 };

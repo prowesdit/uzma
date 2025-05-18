@@ -12,7 +12,7 @@ import { useState } from "react";
 import { UpdateBookingModal } from "./update-booking-modal";
 import { BookingForm } from "@/app/lib/definitions";
 import { formatDateToLocal } from "@/app/lib/utils";
-import { PrintVoucherButton } from "./buttons";
+import { PrintDeliveryChallanButton, PrintDevitVoucherButton } from "./buttons";
 
 export default function BookingsTable({
   bookings,
@@ -36,6 +36,19 @@ export default function BookingsTable({
                   key={booking.id}
                   className="mb-2 w-full rounded-md bg-white p-4 shadow-sm border"
                 >
+                  {/* id and time */}
+                  <div className="mb-2">
+                      <span className="text-xs">{booking.id}</span> <br />
+                      <span className="text-xs text-gray-500">
+                        Issued at {formatDateToLocal(booking.created_at)}.
+                      </span>
+                      {booking?.updated_at  ? (
+                        <>
+                          <span className="text-xs text-gray-500"> Updated at {formatDateToLocal(booking.updated_at)}</span>
+                        </>
+                      ) : ("")}
+                    </div>
+
                   {/* Header */}
                   <div className="mb-2 flex justify-between">
                     <div>
@@ -58,7 +71,7 @@ export default function BookingsTable({
                             title="Edit Challan"
                           />
                         </button>
-                        <PrintVoucherButton booking={booking} />
+                        <PrintDeliveryChallanButton booking={booking} />
                       </div>
                       {showUpdateBookingModal &&
                       selectedBooking &&
@@ -201,7 +214,7 @@ export default function BookingsTable({
                     <td className="whitespace-nowrap px-3 py-4">
                       {booking.vehicle}
                       <span className="text-xs text-gray-500 flex items-center gap-1">
-                        <TruckIcon className="w-3 h-3" />
+                        <TruckIcon className="w-4 h-4 text-teal-500" />
                         {booking.driver}
                       </span>
                     </td>
@@ -289,7 +302,9 @@ export default function BookingsTable({
                             title="Edit Challan"
                           />
                         </button>
-                        <PrintVoucherButton booking={booking} />
+                        
+                        <PrintDevitVoucherButton booking={booking} />
+                        <PrintDeliveryChallanButton booking={booking} />
                       </div>
                       {showUpdateBookingModal &&
                       selectedBooking &&
