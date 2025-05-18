@@ -24,6 +24,7 @@ interface Vehicle {
   inService: boolean;
   assetFiles?: File[];
   assetFileUrl?: string;
+  mobileNumber?: string;
 }
 
 const VehiclesEntry = () => {
@@ -52,6 +53,7 @@ const VehiclesEntry = () => {
     initialMileage: "",
     averageMileage: "",
     inService: false,
+    mobileNumber: "",
     assetFiles: [],
   });
 
@@ -81,6 +83,7 @@ const VehiclesEntry = () => {
               data.taxTokenExpirationDate?.split("T")[0] || "",
             routePermitExpirationDate:
               data.routePermitExpirationDate?.split("T")[0] || "",
+            mobileNumber: data.mobileNumber || "",
             assetFiles: [],
           });
         } catch (error) {
@@ -146,11 +149,15 @@ const VehiclesEntry = () => {
     setMessage("");
     try {
       const formDataToSend = new FormData();
+      // Debug log
+      console.log("Submitting form data:", formData);
+      // Append all non-file fields
       Object.keys(formData).forEach((key) => {
         if (key !== "assetFiles") {
           formDataToSend.append(key, formData[key as keyof Vehicle] as string);
         }
       });
+      // Append files if any
       formData.assetFiles?.forEach((file) => {
         formDataToSend.append("assetFiles", file);
       });
@@ -166,6 +173,8 @@ const VehiclesEntry = () => {
         method,
         body: formDataToSend,
       });
+      // Debug log
+      console.log("Server response:", await response.clone().json());
 
       if (response.ok) {
         setSubmitSuccess(true);
@@ -192,6 +201,7 @@ const VehiclesEntry = () => {
           taxTokenExpirationDate: "",
           routePermitExpirationDate: "",
           inService: false,
+          mobileNumber: "",
           assetFiles: [],
         });
         if (fileInputRef) fileInputRef.value = "";
@@ -230,7 +240,7 @@ const VehiclesEntry = () => {
     return (
       <form
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-4"
       >
         {/* Model */}
         <div>
@@ -489,6 +499,7 @@ const VehiclesEntry = () => {
             className="w-full border px-2 py-1 rounded"
           />
         </div>
+        {/* Average mileage */}
         <div>
           <label className="block text-sm font-medium">
             Average Mileage / Litre
@@ -518,6 +529,22 @@ const VehiclesEntry = () => {
               setFormData({ ...formData, inService: e.target.checked })
             }
             className="h-5 w-5 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* Mobile Number */}
+        <div>
+          <label className="block text-sm font-medium">Mobile Number</label>
+          <input
+            name="mobileNumber"
+            type="tel"
+            value={formData.mobileNumber}
+            onChange={(e) =>
+              setFormData({ ...formData, mobileNumber: e.target.value })
+            }
+            placeholder="Mobile Number"
+            className="w-full border px-2 py-1 rounded"
+            required
           />
         </div>
         {/* File Upload */}
@@ -594,7 +621,7 @@ const VehiclesEntry = () => {
 
   // --- MAIN RENDER ---
   return (
-    <div className="flex flex-col items-center p-6 w-1/2 mx-auto rounded-md shadow-md bg-white">
+    <div className="flex flex-col items-center p-6 md:w-3/4 lg:w-2/3 mx-auto rounded-md shadow-md bg-white">
       <h1 className="text-2xl font-bold mb-4">
         {mode === "edit" ? "Edit Vehicle" : "Vehicle Entry Form"}
       </h1>

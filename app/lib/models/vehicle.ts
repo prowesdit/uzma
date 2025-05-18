@@ -1,5 +1,18 @@
 import clientPromise from "@/app/lib/db/mongodb";
 import { ObjectId } from "mongodb";
+import { getIO } from "@/app/lib/socket"; // See step 2 for this helper
+function isExpired(dateStr?: string) {
+  if (!dateStr) return false;
+  return new Date(dateStr) < new Date();
+}
+
+function daysLeft(dateStr?: string): number {
+  if (!dateStr) return 0;
+  const today = new Date();
+  const exp = new Date(dateStr);
+  return Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
 export async function insertVehicle(vehicleData: {
   model: string;
   registrationNumber: string;
@@ -118,6 +131,31 @@ export async function updateVehicle(id: string, vehicleData: any) {
       console.warn("Vehicle found but no changes made");
     }
     // console.log("Update result:", result); // Log the update result
+
+    // After updating, check for expirations within 30 days and emit notification
+    const io = getIO();
+    const expiredFields: string[] = [];
+    if (daysLeft(vehicleData.licenseExpirationDate) <= 30)
+      expiredFields.push("লাইসেন্স");
+    if (daysLeft(vehicleData.fitnessExpirationDate) <= 30)
+      expiredFields.push("ফিটনেস");
+    if (daysLeft(vehicleData.taxTokenExpirationDate) <= 30)
+      expiredFields.push("ট্যাক্স টোকেন");
+    if (daysLeft(vehicleData.routePermitExpirationDate) <= 30)
+      expiredFields.push("রুট পারমিট");
+
+    if (expiredFields.length > 0) {
+      io.emit("notification", {
+        title: "Vehicle Paper Expiry Reminder",
+        message: `গাড়ি ${
+          vehicleData.registrationNumber
+        } এর ${expiredFields.join(", ")} ${
+          expiredFields.length > 1 ? "সমূহের" : "এর"
+        } মেয়াদ শেষ হতে চলেছে। দয়া করে ৩০ দিনের মধ্যে নবায়ন করুন।`,
+        vehicleId: id,
+      });
+    }
+
     return {
       success: true,
       modifiedCount: result.modifiedCount,

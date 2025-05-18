@@ -5,8 +5,21 @@ import {
   deleteVehicle,
   updateVehicle,
 } from "@/app/lib/models/vehicle";
+import { getIO } from "@/app/lib/socket";
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
+
+function isExpired(dateStr?: string) {
+  if (!dateStr) return false;
+  return new Date(dateStr) < new Date();
+}
+
+function daysLeft(dateStr?: string): number {
+  if (!dateStr) return 0;
+  const today = new Date();
+  const exp = new Date(dateStr);
+  return Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
 
 export async function createVehicle(vehicleData: {
   model: string;
@@ -26,6 +39,7 @@ export async function createVehicle(vehicleData: {
   initialMileage: number;
   averageMileage: number;
   inService: boolean;
+  mobileNumber?: string;
   assetFileUrl?: string;
 }) {
   try {
@@ -48,6 +62,7 @@ export async function createVehicle(vehicleData: {
       initialMileage,
       averageMileage,
       inService,
+      mobileNumber,
       assetFileUrl,
     } = vehicleData;
 
@@ -68,6 +83,7 @@ export async function createVehicle(vehicleData: {
       !routePermitExpirationDate ||
       !initialMileage ||
       !averageMileage ||
+      !mobileNumber ||
       inService === undefined // Check for inService explicitly
     ) {
       return { success: false, error: "All fields are required." };
@@ -215,6 +231,31 @@ export async function updateVehicleById(
     };
 
     const result = await updateVehicle(vehicleId, completeVehicleData); // Pass the complete object
+
+    // After updating, check for expirations within 30 days and emit notification
+    const io = getIO();
+    const expiredFields: string[] = [];
+    if (daysLeft(vehicleData.licenseExpirationDate) <= 30)
+      expiredFields.push("লাইসেন্স");
+    if (daysLeft(vehicleData.fitnessExpirationDate) <= 30)
+      expiredFields.push("ফিটনেস");
+    if (daysLeft(vehicleData.taxTokenExpirationDate) <= 30)
+      expiredFields.push("ট্যাক্স টোকেন");
+    if (daysLeft(vehicleData.routePermitExpirationDate) <= 30)
+      expiredFields.push("রুট পারমিট");
+
+    if (expiredFields.length > 0) {
+      io.emit("notification", {
+        title: "Vehicle Paper Expiry Reminder",
+        message: `গাড়ি ${
+          vehicleData.registrationNumber
+        } এর ${expiredFields.join(", ")} ${
+          expiredFields.length > 1 ? "সমূহের" : "এর"
+        } মেয়াদ শেষ হতে চলেছে। দয়া করে ৩০ দিনের মধ্যে নবায়ন করুন।`,
+        vehicleId: vehicleId,
+      });
+    }
+
     return { success: true, data: result };
   } catch (error) {
     console.error("Controller : Error updating vehicle:", error);

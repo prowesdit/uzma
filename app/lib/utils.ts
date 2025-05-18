@@ -48,11 +48,17 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
   ];
 };
 
+export function formatDateInput(dateStr: string) {
+  return new Date(dateStr).toISOString().split("T")[0];
+}
+
 export const formatDateToLocal = (
-  dateStr: string,
+  dateStr?: string,
   locale: string = "en-US"
 ) => {
+  if (!dateStr) return ""; // Prevents errors when the input is undefined or null
   const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return ""; // Prevents invalid date issues
   const options: Intl.DateTimeFormatOptions = {
     day: "numeric",
     month: "short",
@@ -61,7 +67,3 @@ export const formatDateToLocal = (
   const formatter = new Intl.DateTimeFormat(locale, options);
   return formatter.format(date);
 };
-
-export function formatDateInput(dateStr: string) {
-  return new Date(dateStr).toISOString().split("T")[0];
-}
