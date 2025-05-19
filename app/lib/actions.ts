@@ -1,6 +1,6 @@
 "use server";
 
-import { signIn } from "@/auth";
+import { auth, getUser, signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -483,6 +483,13 @@ export async function createBooking(prevState: BookingState, formData: FormData)
    credit_amount, typeof credit_amount)
 
   try {
+    const session = await auth();
+    let userInfo = null;
+    if (session?.user?.email) {
+      userInfo = await getUser(session.user.email);
+    }
+    const created_by = userInfo?.name || "system";
+
     const client = await clientPromise;
     const db = client.db("uzma");
     const collection = db.collection("bookings");
@@ -507,7 +514,9 @@ export async function createBooking(prevState: BookingState, formData: FormData)
       credit_amount,
       challan_data,
       created_at: new Date(),
-      updated_at: null
+      created_by: created_by,
+      updated_at: null,
+      updated_by: null,
     });
 
     const bookingId = ddd.insertedId.toString();
@@ -622,6 +631,13 @@ export async function updateBooking(
   } = validatedFields.data;
 
   try {
+    const session = await auth();
+    let userInfo = null;
+    if (session?.user?.email) {
+      userInfo = await getUser(session.user.email);
+    }
+    const updated_by = userInfo?.name || "system";
+
     const client = await clientPromise;
     const db = client.db("uzma");
     const collection = db.collection("bookings");
@@ -649,7 +665,8 @@ export async function updateBooking(
           credit_amount,
           challan_data,
           delivery_costs_data,
-          updated_at: new Date()
+          updated_at: new Date(),
+          updated_by: updated_by,
         },
       }
     );
