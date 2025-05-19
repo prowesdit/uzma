@@ -40,9 +40,7 @@ export default function CreateBookingForm() {
   // with print or not
   const [printVoucher, setPrintVoucher] = useState("");
 
-  
-
-  // states and functions for challan data field 
+  // states and functions for challan data field
   const [challans, setChallans] = useState<ChallanData[]>([
     {
       item_detail: "",
@@ -107,14 +105,14 @@ export default function CreateBookingForm() {
   useEffect(() => {
     if (state.errors) {
       setIsLoading(false);
-      setPrintVoucher("")
+      setPrintVoucher("");
     }
   }, [state.errors]);
 
   useEffect(() => {
     if (state.voucherData && printVoucher === "yes") {
       const voucherData = state.voucherData;
-      PrintVoucher({ voucherData });
+      PrintVoucher({ voucherData, type: "delivery_challan" });
       setIsLoading(false);
       setPrintVoucher("");
     } else if (state.voucherData && printVoucher === "no") {
@@ -576,26 +574,57 @@ export default function CreateBookingForm() {
           )}
         </div>
 
-        {/* note */}
-        <div className="mb-4">
-          <label htmlFor="note" className="mb-2 block text-sm font-medium">
-            Note
-          </label>
-          <div className="relative mt-2 rounded-md">
-            <div className="relative">
-              <textarea
-                id="note"
-                name="note"
-                placeholder="Enter notes"
-                defaultValue={state?.values?.note ?? ""}
-                className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-              />
-              <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+        <div className="flex flex-wrap lg:flex-nowrap gap-2">
+          {/* note */}
+          <div className="mb-4">
+            <label htmlFor="note" className="mb-2 block text-sm font-medium">
+              Note
+            </label>
+            <div className="relative mt-2 rounded-md">
+              <div className="relative">
+                <textarea
+                  id="note"
+                  name="note"
+                  placeholder="Enter notes"
+                  defaultValue={state?.values?.note ?? ""}
+                  className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                />
+                <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+              </div>
             </div>
+            {state.errors?.note && (
+              <p className="text-red-500 text-sm mt-1">{state.errors.note}</p>
+            )}
           </div>
-          {state.errors?.note && (
-            <p className="text-red-500 text-sm mt-1">{state.errors.note}</p>
-          )}
+
+          {/* credit amount */}
+          <div className="mb-4">
+            <label
+              htmlFor="credit_amount"
+              className="mb-2 block text-sm font-medium"
+            >
+              Credit Amount
+            </label>
+            <div className="relative mt-2 rounded-md">
+              <div className="relative">
+                <input
+                  id="credit_amount"
+                  name="credit_amount"
+                  type="number"
+                  placeholder="Enter credit amount"
+                  defaultValue={state?.values?.credit_amount ?? 0}
+                  className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                  // required
+                />
+                <CurrencyDollarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+              </div>
+            </div>
+            {state.errors?.credit_amount && (
+              <p className="text-red-500 text-sm mt-1">
+                {state.errors.credit_amount}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* challan data */}
