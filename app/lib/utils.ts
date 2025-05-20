@@ -67,3 +67,10 @@ export const formatDateToLocal = (
   const formatter = new Intl.DateTimeFormat(locale, options);
   return formatter.format(date);
 };
+
+export function daysLeft(dateStr?: string): number {
+  if (!dateStr) return 0;
+  const today = new Date();
+  const exp = new Date(dateStr);
+  return Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}

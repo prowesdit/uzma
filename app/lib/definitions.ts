@@ -74,6 +74,7 @@ export type BookingForm = {
   delivery_costs_data: JSON;
   created_at: string;
   updated_at: string;
+  updated_by: string;
 };
 
 export type InventoryForm = {
@@ -87,4 +88,11 @@ export type InventoryForm = {
   expire_date: string;
   created_at: string;
   updated_at: string;
+};
+
+export type DeliveryFilters = {
+  startDate: string;
+  endDate: string;
+  vehicle?: string;
+  query?: string;
 };
