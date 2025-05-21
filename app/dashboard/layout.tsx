@@ -1,5 +1,5 @@
 import { auth, getUser } from "@/auth";
-import NotificationListener from "@/app/ui/NotificationListener";
+// import NotificationListener from "@/app/ui/NotificationListener";
 import SideNav from "../ui/dashboard/sidenav";
 import TopNav from "../ui/dashboard/topnav";
 
@@ -32,7 +32,7 @@ export default async function Layout({
             `,
           }}
         />
-        <NotificationListener />
+        {/* <NotificationListener /> */}
         {children}
       </div>
     </div>

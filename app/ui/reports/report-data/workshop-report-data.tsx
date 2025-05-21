@@ -7,7 +7,7 @@ import {
   UserIcon,
   CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
-// import WorkshopReportPDF from "../pdf/workshop-report-pdf";
+import WorkshopReportPDF from "../pdf/workshop-report-pdf";
 
 type WorkshopFilters = {
   startDate: string;
@@ -60,7 +60,7 @@ export default function WorkshopDeliveryData({ filters, data }: Props) {
               )}
             </div>
           </div>
-          {/* <PDFDownloadLink
+          <PDFDownloadLink
             document={<WorkshopReportPDF data={data} filters={filters} />}
             fileName={`workshop-report-${filters.startDate || ""}-${
               filters.endDate || ""
@@ -71,13 +71,13 @@ export default function WorkshopDeliveryData({ filters, data }: Props) {
                 {loading ? "Preparing PDF..." : "Download Workshop Report"}
               </button>
             )}
-          </PDFDownloadLink> */}
+          </PDFDownloadLink>
         </div>
       </div>
       <table className="w-full table-auto border-collapse text-sm">
         <thead>
           <tr className="bg-gray-200 text-left">
-            <th className="px-4 py-2 border">#</th>
+            {/* <th className="px-4 py-2 border">#</th> */}
             <th className="px-4 py-2 border">Vehicle</th>
             {/* <th className="px-4 py-2 border">Mechanic</th> */}
             <th className="px-4 py-2 border">Date</th>
@@ -89,19 +89,19 @@ export default function WorkshopDeliveryData({ filters, data }: Props) {
           {data.map((row, idx) => (
             <Fragment key={row.id || idx}>
               <tr className="hover:bg-gray-100">
-                <td className="px-4 py-2 border">{row.id || idx + 1}</td>
+                {/* <td className="px-4 py-2 border">{row.id || idx + 1}</td> */}
                 <td className="px-4 py-2 border">
                   <span className="flex items-center gap-1">
                     <WrenchScrewdriverIcon className="w-4 h-4 text-teal-500" />
                     {row.vehicle || "-"}
                   </span>
                 </td>
-                <td className="px-4 py-2 border">
+                {/* <td className="px-4 py-2 border">
                   <span className="flex items-center gap-1">
                     <UserIcon className="w-4 h-4 text-gray-500" />
                     {row.mechanic || "-"}
                   </span>
-                </td>
+                </td> */}
                 <td className="px-4 py-2 border">
                   <span className="flex items-center gap-1">
                     <CalendarDaysIcon className="w-4 h-4 text-gray-500" />
@@ -121,16 +121,6 @@ export default function WorkshopDeliveryData({ filters, data }: Props) {
                   {row.total ?? 0}
                 </td>
               </tr>
-              {row.note && (
-                <tr className="text-sm">
-                  <td
-                    colSpan={6}
-                    className="px-4 py-2 border-t whitespace-pre-wrap break-words"
-                  >
-                    <strong>Note:</strong> {row.note}
-                  </td>
-                </tr>
-              )}
             </Fragment>
           ))}
         </tbody>

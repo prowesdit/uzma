@@ -92,7 +92,7 @@ export default function WorkshopHistoryFilters({ onFilterChange }: Props) {
           />
         </div>
       </div> */}
-      <div>
+      {/* <div>
         <div>
           <label className="text-xs text-gray-400">#</label>
         </div>
@@ -107,7 +107,7 @@ export default function WorkshopHistoryFilters({ onFilterChange }: Props) {
             className="border rounded px-3 py-2"
           />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

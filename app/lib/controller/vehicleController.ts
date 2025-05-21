@@ -5,7 +5,7 @@ import {
   deleteVehicle,
   updateVehicle,
 } from "@/app/lib/models/vehicle";
-import { getIO } from "@/app/lib/socket";
+// import { getIO } from "@/app/lib/socket";
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 import { daysLeft } from "../utils";
@@ -193,8 +193,8 @@ export async function updateVehicleById(
     carryingCapacity?: number;
     fitnessExpirationDate?: string;
     licenseExpirationDate?: string;
-    taxTokenExpirationDate: string; // <-- NEW
-    routePermitExpirationDate: string; // <-- NEW
+    taxTokenExpirationDate: string;
+    routePermitExpirationDate: string;
     initialMileage?: number;
     averageMileage?: number;
     inService?: boolean;
@@ -227,7 +227,7 @@ export async function updateVehicleById(
     const result = await updateVehicle(vehicleId, completeVehicleData); // Pass the complete object
 
     // After updating, check for expirations within 30 days and emit notification
-    const io = getIO();
+    // const io = getIO();
     const expiredFields: string[] = [];
     if (daysLeft(vehicleData.licenseExpirationDate) <= 30)
       expiredFields.push("লাইসেন্স");
@@ -238,17 +238,17 @@ export async function updateVehicleById(
     if (daysLeft(vehicleData.routePermitExpirationDate) <= 30)
       expiredFields.push("রুট পারমিট");
 
-    if (expiredFields.length > 0) {
-      io.emit("notification", {
-        title: "Vehicle Paper Expiry Reminder",
-        message: `গাড়ি ${
-          vehicleData.registrationNumber
-        } এর ${expiredFields.join(", ")} ${
-          expiredFields.length > 1 ? "সমূহের" : "এর"
-        } মেয়াদ শেষ হতে চলেছে। দয়া করে ৩০ দিনের মধ্যে নবায়ন করুন।`,
-        vehicleId: vehicleId,
-      });
-    }
+    // if (expiredFields.length > 0) {
+    //   io.emit("notification", {
+    //     title: "Vehicle Paper Expiry Reminder",
+    //     message: `গাড়ি ${
+    //       vehicleData.registrationNumber
+    //     } এর ${expiredFields.join(", ")} ${
+    //       expiredFields.length > 1 ? "সমূহের" : "এর"
+    //     } মেয়াদ শেষ হতে চলেছে। দয়া করে ৩০ দিনের মধ্যে নবায়ন করুন।`,
+    //     vehicleId: vehicleId,
+    //   });
+    // }
 
     return { success: true, data: result };
   } catch (error) {

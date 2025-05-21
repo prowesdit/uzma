@@ -1,6 +1,6 @@
 import clientPromise from "@/app/lib/db/mongodb";
 import { ObjectId } from "mongodb";
-import { getIO } from "@/app/lib/socket"; // See step 2 for this helper
+// import { getIO } from "@/app/lib/socket"; // See step 2 for this helper
 import { daysLeft } from "../utils";
 function isExpired(dateStr?: string) {
   if (!dateStr) return false;
@@ -127,7 +127,7 @@ export async function updateVehicle(id: string, vehicleData: any) {
     // console.log("Update result:", result); // Log the update result
 
     // After updating, check for expirations within 30 days and emit notification
-    const io = getIO();
+    // const io = getIO();
     const expiredFields: string[] = [];
     if (daysLeft(vehicleData.licenseExpirationDate) <= 30)
       expiredFields.push("লাইসেন্স");
@@ -138,17 +138,17 @@ export async function updateVehicle(id: string, vehicleData: any) {
     if (daysLeft(vehicleData.routePermitExpirationDate) <= 30)
       expiredFields.push("রুট পারমিট");
 
-    if (expiredFields.length > 0) {
-      io.emit("notification", {
-        title: "Vehicle Paper Expiry Reminder",
-        message: `গাড়ি ${
-          vehicleData.registrationNumber
-        } এর ${expiredFields.join(", ")} ${
-          expiredFields.length > 1 ? "সমূহের" : "এর"
-        } মেয়াদ শেষ হতে চলেছে। দয়া করে ৩০ দিনের মধ্যে নবায়ন করুন।`,
-        vehicleId: id,
-      });
-    }
+    // if (expiredFields.length > 0) {
+    //   io.emit("notification", {
+    //     title: "Vehicle Paper Expiry Reminder",
+    //     message: `গাড়ি ${
+    //       vehicleData.registrationNumber
+    //     } এর ${expiredFields.join(", ")} ${
+    //       expiredFields.length > 1 ? "সমূহের" : "এর"
+    //     } মেয়াদ শেষ হতে চলেছে। দয়া করে ৩০ দিনের মধ্যে নবায়ন করুন।`,
+    //     vehicleId: id,
+    //   });
+    // }
 
     return {
       success: true,
