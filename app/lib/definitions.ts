@@ -90,12 +90,6 @@ export type InventoryForm = {
   updated_at: string;
 };
 
-export type DeliveryFilters = {
-  startDate: string;
-  endDate: string;
-  vehicle?: string;
-  query?: string;
-};
 
 
 
