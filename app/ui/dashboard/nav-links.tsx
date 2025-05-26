@@ -5,7 +5,11 @@ import {
   CircleStackIcon,
   HomeIcon,
   ShareIcon,
+  TruckIcon,
   UsersIcon,
+  WrenchScrewdriverIcon,
+  BellAlertIcon,
+  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Link from "next/link";
@@ -14,17 +18,42 @@ import { usePathname } from "next/navigation";
 const links = [
   { name: "Home", href: "/dashboard", icon: HomeIcon },
   { name: "Offices", href: "/dashboard/offices", icon: ShareIcon },
-  { name: "Bookings", href: "/dashboard/bookings", icon: ArrowRightStartOnRectangleIcon },
+  { name: "Add Vehicle", href: "/dashboard/vehicles-entry", icon: TruckIcon },
+
+  {
+    name: "Manage Vehicles",
+    href: "/dashboard/vehicles-management",
+    icon: AdjustmentsHorizontalIcon,
+  },
+
+  {
+    name: "Bookings",
+    href: "/dashboard/bookings",
+    icon: ArrowRightStartOnRectangleIcon,
+  },
+
   { name: "Inventory", href: "/dashboard/inventory", icon: CircleStackIcon },
   { name: "Reports", href: "/dashboard/reports", icon: BookOpenIcon },
+
+  {
+    name: "Repair Memo",
+    href: "/dashboard/repair",
+    icon: WrenchScrewdriverIcon,
+  },
+  {
+    name: "Notifications",
+    href: "/dashboard/notification",
+    icon: BellAlertIcon,
+  },
   { name: "Users", href: "/dashboard/users", icon: UsersIcon },
 ];
 
-export default function NavLinks({userRole}: {userRole: string | null}) {
+export default function NavLinks({ userRole }: { userRole: string | null }) {
   const pathname = usePathname();
   return (
     <>
       {links.map((link) => {
+         if(userRole === "manager" && link.href === "/dashboard/users") return;
         const LinkIcon = link.icon;
         return (
           <Link

@@ -7,6 +7,8 @@ import { CreateUser } from "@/app/ui/users/buttons";
 import UsersTable from "@/app/ui/users/table";
 import { PaginationSkeleton, UsersTableSkeleton } from "@/app/ui/skeletons";
 import UserPagination from "@/app/ui/users/pagination";
+import { auth, getUser } from "@/auth";
+import { notFound } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Users",
@@ -18,9 +20,22 @@ export default async function Page(props: {
     page?: string;
   }>;
 }) {
+  const session = await auth();
+  let userInfo = null;
+  if (session?.user?.email) {
+    userInfo = await getUser(session.user.email);
+  }
+
+  if (userInfo?.user_role !== "admin" || !session?.user?.email) {
+    notFound()
+    return;
+  }
+
+
   const searchParams = await props.searchParams;
   const query = searchParams?.query || "";
   const currentPage = Number(searchParams?.page) || 1;
+
 
   return (
     <div className="w-full">
@@ -41,4 +56,5 @@ export default async function Page(props: {
       </div>
     </div>
   );
+
 }

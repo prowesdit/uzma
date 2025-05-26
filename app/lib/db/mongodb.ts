@@ -10,6 +10,7 @@ declare global {
 }
 
 const uri = process.env.MONGODB_URI as string;
+// console.log(uri);
 if (!uri) {
   throw new Error("Please define the MONGODB_URI environment variable in .env");
 }

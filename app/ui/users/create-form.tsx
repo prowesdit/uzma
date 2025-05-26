@@ -143,7 +143,7 @@ export default function CreateUserForm() {
               </option>
               {/* <option value="salesman">Salesman</option> */}
                 <option value="admin">Admin</option>
-                <option value="manager">Accountant</option>
+                <option value="manager">Manager</option>
                 
             </select>
             <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />

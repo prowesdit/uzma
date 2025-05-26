@@ -12,46 +12,11 @@ export type User = {
   created_at: string;
 };
 
-
 export type Revenue = {
   month: string;
   revenue: number;
   year: number;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export type UserTable = {
   id: string;
