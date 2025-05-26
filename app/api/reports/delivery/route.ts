@@ -1,8 +1,14 @@
+
 import clientPromise from "@/app/lib/db/mongodb";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { startDate, endDate, vehicle, query }: {
+  const {
+    startDate,
+    endDate,
+    vehicle,
+    query,
+  }: {
     startDate?: string;
     endDate?: string;
     vehicle?: string;
@@ -48,7 +54,12 @@ export async function POST(req: Request) {
       { booking_type: { $regex: query, $options: "i" } },
       { note: { $regex: query, $options: "i" } },
       { "challan_data.challan_no": { $regex: query, $options: "i" } },
-      { "delivery_costs_data.debit_voucher_no": { $regex: query, $options: "i" } },
+      {
+        "delivery_costs_data.debit_voucher_no": {
+          $regex: query,
+          $options: "i",
+        },
+      },
       { booking_no: { $regex: query, $options: "i" } },
     ];
   }

@@ -89,6 +89,7 @@ export async function POST(req: Request) {
     };
 
     const result = await insertRepairMemo(memo);
+    // console.log("Inserted memo:", result);
     return NextResponse.json({ success: true, memoId, id: result.insertedId });
   } catch (error) {
     return NextResponse.json(

@@ -154,7 +154,7 @@ const BookingFormSchema = z.object({
     .number()
     .gte(0, { message: "Credit amount must be at least 0." }),
   challan_data: z.array(SingleChallanDataSchema),
-  delivery_costs_data: z.array(SingleDeliveryCostDataSchema),
+  delivery_costs_data: z.array(SingleDeliveryCostDataSchema).optional(),
 });
 
 export type BookingState = {

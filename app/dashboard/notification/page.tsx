@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { get } from "http";
+import { daysLeft } from "@/app/lib/utils";
 
 // import { sendSmsNotification } from "../../lib/twilio/twilioServer";
 interface Vehicle {
@@ -14,16 +15,6 @@ interface Vehicle {
   routePermitExpirationDate?: string;
   mobileNumber?: string; // Add this field
 }
-
-const getDaysLeft = (dateStr: string): number => {
-  if (!dateStr) return 0; // Default to 0 if dateStr is invalid
-  const today = new Date();
-  const exp = new Date(dateStr);
-  const diff = Math.ceil(
-    (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-  );
-  return diff;
-};
 
 const REMOVED_KEY = "removedNotifications";
 const POLL_INTERVAL = 10 * 60 * 1000; // 10 minutes
@@ -63,16 +54,16 @@ const NotificationPage = () => {
 
   const expiringSoon = filteredVehicles.filter(
     (v) =>
-      (getDaysLeft(v.licenseExpirationDate) !== null &&
-        getDaysLeft(v.licenseExpirationDate)! <= 30) ||
-      (getDaysLeft(v.fitnessExpirationDate) !== null &&
-        getDaysLeft(v.fitnessExpirationDate)! <= 30) ||
+      (daysLeft(v.licenseExpirationDate) !== null &&
+        daysLeft(v.licenseExpirationDate)! <= 30) ||
+      (daysLeft(v.fitnessExpirationDate) !== null &&
+        daysLeft(v.fitnessExpirationDate)! <= 30) ||
       (v.taxTokenExpirationDate !== undefined &&
-        getDaysLeft(v.taxTokenExpirationDate) !== null &&
-        getDaysLeft(v.taxTokenExpirationDate)! <= 30) ||
+        daysLeft(v.taxTokenExpirationDate) !== null &&
+        daysLeft(v.taxTokenExpirationDate)! <= 30) ||
       (v.routePermitExpirationDate !== undefined &&
-        getDaysLeft(v.routePermitExpirationDate) !== null &&
-        getDaysLeft(v.routePermitExpirationDate)! <= 30)
+        daysLeft(v.routePermitExpirationDate) !== null &&
+        daysLeft(v.routePermitExpirationDate)! <= 30)
   );
 
   // Remove notification and persist in localStorage
@@ -84,7 +75,7 @@ const NotificationPage = () => {
 
   // Helper to check if expired
   const isExpired = (dateStr?: string) =>
-    dateStr ? getDaysLeft(dateStr) <= 0 : false;
+    dateStr ? daysLeft(dateStr) <= 0 : false;
 
   // Auto notification effect (runs on vehicles update)
   useEffect(() => {
@@ -136,66 +127,66 @@ const NotificationPage = () => {
                 <div className="font-semibold">
                   {v.model} ({v.registrationNumber})
                 </div>
-                {getDaysLeft(v.licenseExpirationDate)! <= 0 ? (
+                {daysLeft(v.licenseExpirationDate)! <= 0 ? (
                   <div className="text-red-600">
                     License expired before{" "}
-                    {Math.abs(getDaysLeft(v.licenseExpirationDate))} day(s) (
+                    {Math.abs(daysLeft(v.licenseExpirationDate))} day(s) (
                     {v.licenseExpirationDate})
                   </div>
                 ) : (
-                  getDaysLeft(v.licenseExpirationDate) !== null &&
-                  getDaysLeft(v.licenseExpirationDate)! <= 30 && (
+                  daysLeft(v.licenseExpirationDate) !== null &&
+                  daysLeft(v.licenseExpirationDate)! <= 30 && (
                     <div className="text-red-600">
                       License will expire within{" "}
-                      {getDaysLeft(v.licenseExpirationDate)} day(s) (
+                      {daysLeft(v.licenseExpirationDate)} day(s) (
                       {v.licenseExpirationDate})
                     </div>
                   )
                 )}
-                {getDaysLeft(v.fitnessExpirationDate)! <= 0 ? (
+                {daysLeft(v.fitnessExpirationDate)! <= 0 ? (
                   <div className="text-red-600">
                     Fitness expired before{" "}
-                    {Math.abs(getDaysLeft(v.fitnessExpirationDate))} day(s) (
+                    {Math.abs(daysLeft(v.fitnessExpirationDate))} day(s) (
                     {v.fitnessExpirationDate})
                   </div>
                 ) : (
-                  getDaysLeft(v.fitnessExpirationDate) !== null &&
-                  getDaysLeft(v.fitnessExpirationDate)! <= 30 && (
+                  daysLeft(v.fitnessExpirationDate) !== null &&
+                  daysLeft(v.fitnessExpirationDate)! <= 30 && (
                     <div className="text-red-600">
                       Fitness will expire within{" "}
-                      {getDaysLeft(v.fitnessExpirationDate)} day(s) (
+                      {daysLeft(v.fitnessExpirationDate)} day(s) (
                       {v.fitnessExpirationDate})
                     </div>
                   )
                 )}
                 {v.taxTokenExpirationDate &&
-                  (getDaysLeft(v.taxTokenExpirationDate)! <= 0 ? (
+                  (daysLeft(v.taxTokenExpirationDate)! <= 0 ? (
                     <div className="text-red-600">
                       Tax Token expired before{" "}
-                      {Math.abs(getDaysLeft(v.taxTokenExpirationDate))} day(s) (
+                      {Math.abs(daysLeft(v.taxTokenExpirationDate))} day(s) (
                       {v.taxTokenExpirationDate})
                     </div>
                   ) : (
-                    getDaysLeft(v.taxTokenExpirationDate)! <= 30 && (
+                    daysLeft(v.taxTokenExpirationDate)! <= 30 && (
                       <div className="text-red-600">
                         Tax Token will expire within{" "}
-                        {getDaysLeft(v.taxTokenExpirationDate)} day(s) (
+                        {daysLeft(v.taxTokenExpirationDate)} day(s) (
                         {v.taxTokenExpirationDate})
                       </div>
                     )
                   ))}
                 {v.routePermitExpirationDate &&
-                  (getDaysLeft(v.routePermitExpirationDate)! <= 0 ? (
+                  (daysLeft(v.routePermitExpirationDate)! <= 0 ? (
                     <div className="text-red-600">
                       Route Permit expired before{" "}
-                      {Math.abs(getDaysLeft(v.routePermitExpirationDate))}{" "}
-                      day(s) ({v.routePermitExpirationDate})
+                      {Math.abs(daysLeft(v.routePermitExpirationDate))} day(s) (
+                      {v.routePermitExpirationDate})
                     </div>
                   ) : (
-                    getDaysLeft(v.routePermitExpirationDate)! <= 30 && (
+                    daysLeft(v.routePermitExpirationDate)! <= 30 && (
                       <div className="text-red-600">
                         Route Permit will expire within{" "}
-                        {getDaysLeft(v.routePermitExpirationDate)} day(s) (
+                        {daysLeft(v.routePermitExpirationDate)} day(s) (
                         {v.routePermitExpirationDate})
                       </div>
                     )
@@ -203,7 +194,7 @@ const NotificationPage = () => {
               </div>
               {/* Remove Button */}
               <button
-                className="  text-red-500 hover:text-red-700 font-bold text-lg flex flex-col items-center"
+                className="text-red-500 hover:text-red-700 font-bold text-lg flex flex-col items-center"
                 title="Remove notification"
                 onClick={() => handleRemove(v._id)}
               >

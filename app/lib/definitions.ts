@@ -96,16 +96,3 @@ export type DeliveryFilters = {
   vehicle?: string;
   query?: string;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-

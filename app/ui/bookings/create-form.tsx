@@ -118,6 +118,7 @@ export default function CreateBookingForm() {
     } else if (state.voucherData && printVoucher === "no") {
       setIsLoading(false);
       setPrintVoucher("");
+      alert("Booking Added Successfully")
     } else if (state.message) {
       // form error or early return
       setIsLoading(false);

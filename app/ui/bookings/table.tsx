@@ -19,6 +19,7 @@ export default function BookingsTable({
 }: {
   bookings: BookingForm[];
 }) {
+  console.log(bookings)
   const [showUpdateBookingModal, setShowUpdateBookingModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<BookingForm | null>(
     null
