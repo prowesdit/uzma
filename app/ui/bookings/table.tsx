@@ -12,7 +12,7 @@ import { useState } from "react";
 import { UpdateBookingModal } from "./update-booking-modal";
 import { BookingForm } from "@/app/lib/definitions";
 import { formatDateToLocal } from "@/app/lib/utils";
-import { PrintVoucherButton } from "./buttons";
+import { PrintDeliveryChallanButton, PrintDevitVoucherButton } from "./buttons";
 
 export default function BookingsTable({
   bookings,
@@ -36,6 +36,19 @@ export default function BookingsTable({
                   key={booking.id}
                   className="mb-2 w-full rounded-md bg-white p-4 shadow-sm border"
                 >
+                  {/* id and time */}
+                  <div className="mb-2">
+                      <span className="text-xs">{booking.id}</span> <br />
+                      <span className="text-xs text-gray-500">
+                        Issued at {formatDateToLocal(booking.created_at)}.
+                      </span>
+                      {booking?.updated_at  ? (
+                        <>
+                          <span className="text-xs text-gray-500"> Updated at {formatDateToLocal(booking.updated_at)}</span>
+                        </>
+                      ) : ("")}
+                    </div>
+
                   {/* Header */}
                   <div className="mb-2 flex justify-between">
                     <div>
@@ -58,7 +71,7 @@ export default function BookingsTable({
                             title="Edit Challan"
                           />
                         </button>
-                        <PrintVoucherButton booking={booking} />
+                        <PrintDeliveryChallanButton booking={booking} />
                       </div>
                       {showUpdateBookingModal &&
                       selectedBooking &&
@@ -169,9 +182,10 @@ export default function BookingsTable({
                   <th className="px-4 py-5 font-medium">Customer</th>
                   <th className="px-3 py-5 font-medium">Vehicle</th>
                   <th className="px-3 py-5 font-medium">Pickup / Dropoff</th>
-                  <th className="px-3 py-5 font-medium">Passengers</th>
+                  <th className="px-3 py-5 font-medium">Cr / Dr</th>
+                  {/* <th className="px-3 py-5 font-medium">Passengers</th>
                   <th className="px-3 py-5 font-medium">Payment Status</th>
-                  <th className="px-3 py-5 font-medium">Booking Status</th>
+                  <th className="px-3 py-5 font-medium">Booking Status</th> */}
                   <th className="relative py-3 pl-6 pr-3">
                     <span className="sr-only">Edit</span>
                   </th>
@@ -191,7 +205,7 @@ export default function BookingsTable({
                       {booking?.updated_at  ? (
                         <>
                           <br />
-                          <span className="text-xs text-gray-500">Updated at {formatDateToLocal(booking.updated_at)}</span>
+                          <span className="text-xs text-gray-500">Updated at {formatDateToLocal(booking.updated_at)} by {booking.updated_by}</span>
                         </>
                       ) : ("")}
                     </td>
@@ -201,7 +215,7 @@ export default function BookingsTable({
                     <td className="whitespace-nowrap px-3 py-4">
                       {booking.vehicle}
                       <span className="text-xs text-gray-500 flex items-center gap-1">
-                        <TruckIcon className="w-3 h-3" />
+                        <TruckIcon className="w-4 h-4 text-teal-500" />
                         {booking.driver}
                       </span>
                     </td>
@@ -266,14 +280,17 @@ export default function BookingsTable({
                     </td>
 
                     <td className="whitespace-nowrap px-3 py-4 text-center">
-                      {booking.passenger_num}
+                          {booking.credit_amount ? booking.credit_amount : 0} / {(Array.isArray(booking.delivery_costs_data)
+                            ? booking.delivery_costs_data
+                            : (typeof booking.delivery_costs_data === "string" && Array.isArray(JSON.parse(booking.delivery_costs_data)))
+                              ? JSON.parse(booking.delivery_costs_data)
+                              : []
+                          ).reduce((acc: any, item: { cost: any; }) => acc + item.cost, 0)}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4">
-                      {booking.payment_status}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-4">
-                      {booking.booking_status}
-                    </td>
+
+                    {/* <td className="whitespace-nowrap px-3 py-4 text-center"> {booking.passenger_num}  </td>
+                    <td className="whitespace-nowrap px-3 py-4">  {booking.payment_status} </td>
+                    <td className="whitespace-nowrap px-3 py-4"> {booking.booking_status} </td> */}
                     <td className="whitespace-nowrap py-3 pl-6 pr-3">
                       <div className="flex justify-end gap-3">
                         <button
@@ -289,7 +306,9 @@ export default function BookingsTable({
                             title="Edit Challan"
                           />
                         </button>
-                        <PrintVoucherButton booking={booking} />
+                        
+                        <PrintDevitVoucherButton booking={booking} />
+                        <PrintDeliveryChallanButton booking={booking} />
                       </div>
                       {showUpdateBookingModal &&
                       selectedBooking &&

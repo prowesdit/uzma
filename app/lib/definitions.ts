@@ -69,9 +69,12 @@ export type BookingForm = {
   booking_status: string;
   booking_type: string;
   note: string;
+  credit_amount: string;
   challan_data: JSON;
+  delivery_costs_data: JSON;
   created_at: string;
   updated_at: string;
+  updated_by: string;
 };
 
 export type InventoryForm = {
@@ -86,3 +89,23 @@ export type InventoryForm = {
   created_at: string;
   updated_at: string;
 };
+
+export type DeliveryFilters = {
+  startDate: string;
+  endDate: string;
+  vehicle?: string;
+  query?: string;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+

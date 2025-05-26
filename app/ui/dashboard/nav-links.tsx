@@ -1,6 +1,7 @@
 "use client";
 import {
   ArrowRightStartOnRectangleIcon,
+  BookOpenIcon,
   CircleStackIcon,
   HomeIcon,
   ShareIcon,
@@ -32,6 +33,7 @@ const links = [
   },
 
   { name: "Inventory", href: "/dashboard/inventory", icon: CircleStackIcon },
+  { name: "Reports", href: "/dashboard/reports", icon: BookOpenIcon },
 
   {
     name: "Repair Memo",
@@ -51,6 +53,7 @@ export default function NavLinks({ userRole }: { userRole: string | null }) {
   return (
     <>
       {links.map((link) => {
+         if(userRole === "manager" && link.href === "/dashboard/users") return;
         const LinkIcon = link.icon;
         return (
           <Link

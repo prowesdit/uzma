@@ -1,10 +1,20 @@
 import { formatDateToLocal } from "../utils";
 
-export const PrintVoucher = ({ voucherData }: { voucherData: any }) => {
-  const handleDriverChallanPrint = () => {
+export const PrintVoucher = ({
+  voucherData,
+  type,
+}: {
+  voucherData: any;
+  type: string;
+}) => {
+
+
+  const handleDebitVoucherPrint = () => {
     const {
       bookingNumber,
       customer,
+      customer_bin,
+      customer_address,
       vehicle,
       driver,
       pickup_address,
@@ -18,19 +28,21 @@ export const PrintVoucher = ({ voucherData }: { voucherData: any }) => {
       booking_status,
       booking_type,
       note,
+      challan_data,
+      delivery_costs_data,
       created_at,
     } = voucherData;
 
     const formattedDate = new Date(created_at).toLocaleDateString("bn-BD");
 
     const printWindow = window.open("", "", "width=900,height=650");
-    const uniqueTitle = `Delivery_Challan_${bookingNumber}_${new Date()
+    const uniqueTitle = `Debit_Voucher_${bookingNumber}_${new Date()
       .toISOString()
       .replace(/[:.]/g, "-")}`;
 
     if (printWindow) {
       printWindow.document.write(`
-       <html>
+      <html>
     <head>
       <title>${uniqueTitle}</title>
       <style>
@@ -47,22 +59,22 @@ export const PrintVoucher = ({ voucherData }: { voucherData: any }) => {
           text-align: center;
         }
         .header {
-          margin-bottom: 8px;
+          /* margin-bottom: 8px; */
         }
         .agency-title {
           font-size: 18px;
-          margin: 4px 0;
+          /* margin: 4px 0; */
         }
         .agency-address {
           font-size: 13px;
-          margin-bottom: 10px;
+          /* margin-bottom: 10px; */
         }
         .voucher-meta {
           width: 100%;
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 4px 40px;
-          margin-top: 12px;
+          gap: 4px 20px;
+          /* margin-top: 12px; */
           font-size: 14px;
         }
         .voucher-meta div {
@@ -72,7 +84,7 @@ export const PrintVoucher = ({ voucherData }: { voucherData: any }) => {
           word-break: break-word;
         }
         .voucher-meta-full {
-          margin-top: 6px;
+          /* margin-top: 6px; */
           display: flex;
           justify-content: space-between;
           width: 100%;
@@ -85,12 +97,12 @@ export const PrintVoucher = ({ voucherData }: { voucherData: any }) => {
         table {
           width: 100%;
           border-collapse: collapse;
-          margin-top: 16px;
+          margin-top: 5px;
           table-layout: fixed;
         }
         th, td {
           border: 1px solid #000;
-          padding: 6px;
+          /* padding: 6px; */
           text-align: center;
           word-wrap: break-word;
         }
@@ -107,22 +119,22 @@ export const PrintVoucher = ({ voucherData }: { voucherData: any }) => {
           width: 57%;
         }
         .note {
-          margin-top: 14px;
+          margin-top: 10px;
           font-size: 13px;
           word-break: break-word;
         }
         .footer {
-          margin-top: 30px;
+          margin-top: 20px;
           display: flex;
           justify-content: space-between;
           font-size: 13px;
         }
         .signature {
           text-align: center;
-          margin-top: 30px;
+          margin-top: 20px;
         }
         .signature-line {
-          margin-top: 30px;
+          margin-top: 20px;
           border-top: 1px solid #000;
           width: 120px;
           margin-left: auto;
@@ -135,11 +147,11 @@ export const PrintVoucher = ({ voucherData }: { voucherData: any }) => {
         <div style="font-size:13px;">বিসমিল্লাহির রাহমানির রাহিম</div>
         <div class="agency-title"><strong>উজ্মা ট্রান্সপোর্ট এজেন্সি</strong></div>
         <div class="agency-address">উত্তর সনিষপুর, ২নং ওয়ার্ড জাকরাবাদ, সীতাকুণ্ড, চট্টগ্রাম</div>
-        <div style="margin-top: 6px;">বিষয়ঃ বিভিন্ন খরচ প্রসঙ্গে।</div>
+        <div >বিষয়ঃ বিভিন্ন খরচ প্রসঙ্গে।</div>
       </div>
 
-      <p style="margin-top: 10px;">বরাবর, হিসাব বিভাগ</p>
-      <p>জনাব, যথাযথ সম্মান প্রদর্শন পূর্বক নিন্মে উল্লেখিত খরচের বিবরণগুলো যাচাই করে বিলটি অনুমোদন প্রদানের জন্য আবেদন জানানো যাচ্ছে।</p>
+      <p style="margin-top: 5px;">বরাবর, হিসাব বিভাগ <br>
+      জনাব, যথাযথ সম্মান প্রদর্শন পূর্বক নিন্মে উল্লেখিত খরচের বিবরণগুলো যাচাই করে বিলটি অনুমোদন প্রদানের জন্য আবেদন জানানো যাচ্ছে।</p>
 
       <div class="voucher-meta">
         <div><span>ভাউচার নং:</span><span>${bookingNumber}</span></div>
@@ -165,24 +177,7 @@ export const PrintVoucher = ({ voucherData }: { voucherData: any }) => {
             <th>মন্তব্য</th>
           </tr>
         </thead>
-        <tbody>
-          <tr><td>1</td><td>জ্বালানী</td><td></td><td></td></tr>
-          <tr><td>2</td><td>রিজভাড়া</td><td></td><td></td></tr>
-          <tr><td>3</td><td>টোল-খাজনা</td><td></td><td></td></tr>
-          <tr><td>4</td><td>পুলিশ</td><td></td><td></td></tr>
-          <tr><td>5</td><td>কাস্টম</td><td></td><td></td></tr>
-          <tr><td>6</td><td>বি.জি.বি</td><td></td><td></td></tr>
-          <tr><td>7</td><td>অন্যান্য</td><td></td><td></td></tr>
-          <tr><td>8</td><td>খোরাকি</td><td></td><td></td></tr>
-          <tr><td>9</td><td></td><td></td><td></td></tr>
-          <tr><td>10</td><td></td><td></td><td></td></tr>
-          <tr><td>11</td><td></td><td></td><td></td></tr>
-          <tr><td>12</td><td></td><td></td><td></td></tr>
-          <tr>
-            <td colspan="2"><strong>মোটঃ</strong></td>
-            <td></td>
-            <td></td>
-          </tr>
+        <tbody id="voucher-body">
         </tbody>
       </table>
 
@@ -197,10 +192,65 @@ export const PrintVoucher = ({ voucherData }: { voucherData: any }) => {
       </div>
     </body>
   </html>
+
       `);
 
       printWindow.document.close();
-      printWindow.print();
+      printWindow.onload = () => {
+        const tbody = printWindow.document.getElementById("voucher-body");
+        let totalFinal = 0;
+        let sumOfTotals = 0,
+          sumOfSDAmounts = 0,
+          sumOfVATAmounts = 0;
+
+        if (!delivery_costs_data || delivery_costs_data.length === 0) {
+          const emptyRow = printWindow.document.createElement("tr");
+          emptyRow.innerHTML = `
+            <td colspan="4" style="text-align: center; border: 1px solid black">কোনো তথ্য নেই</td>
+          `;
+          tbody?.appendChild(emptyRow);
+        } else {
+          delivery_costs_data.forEach(
+            (
+              item: {
+                cost_reason: string;
+                cost: number;
+                remarks: string;
+              },
+              index: number
+            ) => {
+              const row = printWindow.document.createElement("tr");
+              // const total = item.unit_price * item.quantity;
+              // const sdAmount = (total * item.supplementary_duty_rate) / 100;
+              // const vatAmount = (total * item.value_added_tax_rate) / 100;
+
+              // sumOfTotals += total;
+              // sumOfSDAmounts += sdAmount;
+              // sumOfVATAmounts += vatAmount;
+              // totalFinal += total + sdAmount + vatAmount;
+
+              row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${item.cost_reason}</td>
+            <td>${item.cost}</td>
+            <td>${item.remarks}</td>
+          `;
+              tbody?.appendChild(row);
+            }
+          );
+        }
+
+        const totalRow = printWindow.document.createElement("tr");
+        totalRow.innerHTML = `
+            <td colspan="2"><strong>মোটঃ</strong></td>
+            <td></td>
+            <td></td>
+        `;
+        tbody?.appendChild(totalRow);
+      };
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
     } else {
       console.error("Print window could not be opened.");
     }
@@ -540,5 +590,9 @@ export const PrintVoucher = ({ voucherData }: { voucherData: any }) => {
     }
   };
 
-  handleDeliveryChallanPrint();
+  if (type === "delivery_challan") {
+    handleDeliveryChallanPrint();
+  } else if (type === "debit_voucher") {
+    handleDebitVoucherPrint();
+  }
 };

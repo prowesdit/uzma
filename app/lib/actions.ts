@@ -1,6 +1,6 @@
 "use server";
 
-import { signIn } from "@/auth";
+import { auth, getUser, signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -100,6 +100,18 @@ const SingleChallanDataSchema = z.object({
     .gt(0, { message: "Value Added Tax must be at least 1." }),
 });
 
+const SingleDeliveryCostDataSchema = z.object({
+  cost_reason: z.string({
+    invalid_type_error: "Please write the reason of cost.",
+  }),
+  remarks: z.string({
+    invalid_type_error: "Please write the remarks.",
+  }).optional(),
+  cost: z.coerce
+    .number()
+    .gte(0, { message: "Cost must be at least 0." }),
+});
+
 const BookingFormSchema = z.object({
   id: z.string(),
   customer: z.string({
@@ -138,7 +150,11 @@ const BookingFormSchema = z.object({
   booking_status: z.enum(["upcoming", "pending", "completed"], { invalid_type_error: "Please provide booking status." }),
   booking_type: z.enum(["oneway", "return"], { invalid_type_error: "Please provide booking type." }),
   note: z.string().optional(),
+  credit_amount: z.coerce
+    .number()
+    .gte(0, { message: "Credit amount must be at least 0." }),
   challan_data: z.array(SingleChallanDataSchema),
+  delivery_costs_data: z.array(SingleDeliveryCostDataSchema),
 });
 
 export type BookingState = {
@@ -159,6 +175,7 @@ export type BookingState = {
     booking_status?: string[];
     booking_type?: string[];
     note?: string[];
+    credit_amount?: string[];
     // challan_data?: { item_detail?: string[]; delivery_unit?: string[]; quantity?: string[]; unit_price?: string[]; supplementary_duty_rate?: string[]; value_added_tax_rate?: string[]; }[];
   };
   message?: string | null;
@@ -180,7 +197,7 @@ export type BookingState = {
     booking_status?: string;
     booking_type?: string;
     note?: string;
-
+    credit_amount?: string;
   }
 };
 
@@ -410,6 +427,7 @@ export async function createBooking(prevState: BookingState, formData: FormData)
     booking_status: formData.get("booking_status"),
     booking_type: formData.get("booking_type"),
     note: formData.get("note") || undefined,
+    credit_amount: formData.get("credit_amount"),
     challan_data: JSON.parse(formData.get("challan_data") as string)
   });
 
@@ -435,6 +453,7 @@ export async function createBooking(prevState: BookingState, formData: FormData)
         booking_status: formData.get("booking_status")?.toString() || "",
         booking_type: formData.get("booking_type")?.toString() || "",
         note: formData.get("note")?.toString() || undefined,
+        credit_amount: formData.get("credit_amount")?.toString(),
         challan_data: JSON.parse(formData.get("challan_data") as string),
       }
     };
@@ -457,28 +476,20 @@ export async function createBooking(prevState: BookingState, formData: FormData)
     booking_status,
     booking_type,
     note,
+    credit_amount,
     challan_data,
   } = validatedFields.data;
   console.log("data: ", 
-    customer,
-    customer_bin,
-    customer_address,
-    vehicle,
-    driver,
-    pickup_address,
-    dropoff_address,
-    pickup_dt,
-    dropoff_dt,
-    return_pickup_dt,
-    return_dropoff_dt,
-    passenger_num,
-    payment_status,
-    booking_status,
-    booking_type,
-    note,
-    challan_data,)
+   credit_amount, typeof credit_amount)
 
   try {
+    const session = await auth();
+    let userInfo = null;
+    if (session?.user?.email) {
+      userInfo = await getUser(session.user.email);
+    }
+    const created_by = userInfo?.name || "system";
+
     const client = await clientPromise;
     const db = client.db("uzma");
     const collection = db.collection("bookings");
@@ -500,9 +511,12 @@ export async function createBooking(prevState: BookingState, formData: FormData)
       booking_status,
       booking_type,
       note: note || "",
+      credit_amount,
       challan_data,
       created_at: new Date(),
-      updated_at: null
+      created_by: created_by,
+      updated_at: null,
+      updated_by: null,
     });
 
     const bookingId = ddd.insertedId.toString();
@@ -526,6 +540,7 @@ export async function createBooking(prevState: BookingState, formData: FormData)
       booking_status,
       booking_type,
       note: note || "",
+      credit_amount,
       challan_data,
       created_at: new Date(),
     };
@@ -559,7 +574,9 @@ export async function updateBooking(
     booking_status: formData.get("booking_status"),
     booking_type: formData.get("booking_type"),
     note: formData.get("note") || undefined,
-    challan_data: JSON.parse(formData.get("challan_data") as string)
+    credit_amount: formData.get("credit_amount")?.toString(),
+    challan_data: JSON.parse(formData.get("challan_data") as string),
+    delivery_costs_data: JSON.parse(formData.get("delivery_costs_data") as string),
   });
 
   if (!validatedFields.success) {
@@ -584,7 +601,9 @@ export async function updateBooking(
         booking_status: formData.get("booking_status")?.toString() || "",
         booking_type: formData.get("booking_type")?.toString() || "",
         note: formData.get("note")?.toString() || undefined,
+        credit_amount: formData.get("credit_amount")?.toString(),
         challan_data: JSON.parse(formData.get("challan_data") as string),
+        delivery_costs_data: JSON.parse(formData.get("delivery_costs_data") as string),
       }
     };
   }
@@ -606,10 +625,19 @@ export async function updateBooking(
     booking_status,
     booking_type,
     note,
-    challan_data
+    credit_amount,
+    challan_data,
+    delivery_costs_data,
   } = validatedFields.data;
 
   try {
+    const session = await auth();
+    let userInfo = null;
+    if (session?.user?.email) {
+      userInfo = await getUser(session.user.email);
+    }
+    const updated_by = userInfo?.name || "system";
+
     const client = await clientPromise;
     const db = client.db("uzma");
     const collection = db.collection("bookings");
@@ -634,8 +662,11 @@ export async function updateBooking(
           booking_status,
           booking_type,
           note,
+          credit_amount,
           challan_data,
-          updated_at: new Date()
+          delivery_costs_data,
+          updated_at: new Date(),
+          updated_by: updated_by,
         },
       }
     );

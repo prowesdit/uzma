@@ -248,7 +248,6 @@ export async function fetchBookingsPages(query: string) {
 }
 
 export async function fetchFilteredBookings(query: string, currentPage: number) {
-  console.log(query)
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
@@ -293,9 +292,12 @@ export async function fetchFilteredBookings(query: string, currentPage: number) 
       booking_status: booking.booking_status,
       booking_type: booking.booking_type,
       note: booking.note,
+      credit_amount: booking.credit_amount,
       challan_data: booking.challan_data,
+      delivery_costs_data: booking.delivery_costs_data,
       created_at: booking.created_at,
       updated_at: booking.updated_at,
+      updated_by: booking.updated_by,
       _id: undefined, // optional: hide the original _id if you want clean objects
     }));
   } catch (error) {

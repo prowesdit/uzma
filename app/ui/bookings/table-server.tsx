@@ -1,5 +1,7 @@
 import { fetchFilteredBookings } from "@/app/lib/data";
 import BookingsTable from "./table";
+import { auth, getUser } from "@/auth";
+import { notFound } from "next/navigation";
 
 export default async function BookingsTableServer({
   query,
@@ -9,6 +11,7 @@ export default async function BookingsTableServer({
   currentPage: number;
 }) {
   const bookings = await fetchFilteredBookings(query, currentPage);
+
 
   return <BookingsTable bookings={bookings} />;
 }
