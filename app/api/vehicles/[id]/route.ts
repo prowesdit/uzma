@@ -8,14 +8,37 @@ import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 
 // Fetching and Updating a Vehicle
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+// export async function GET(
+//   req: Request,
+//   { params }: { params: { id: string } }
+// ) {
+//   try {
+//     const id = await params?.id;
+//     const vehicle = await getVehicleById(id);
+//     // console.log("Fetched vehicle:", vehicle); // Log the fetched vehicle
+//     if (!vehicle) {
+//       return NextResponse.json(
+//         { message: "Vehicle not found." },
+//         { status: 404 }
+//       );
+//     }
+//     return NextResponse.json(vehicle, { status: 200 });
+//   } catch (error) {
+//     console.error("Error fetching vehicle:", error);
+//     return NextResponse.json(
+//       {
+//         message:
+//           error instanceof Error ? error.message : "Failed to fetch vehicle.",
+//       },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+export async function GET(req: Request, context: { params: { id: string } }) {
   try {
-    const id = await params?.id;
+    const id = context.params.id;
     const vehicle = await getVehicleById(id);
-    // console.log("Fetched vehicle:", vehicle); // Log the fetched vehicle
     if (!vehicle) {
       return NextResponse.json(
         { message: "Vehicle not found." },
@@ -55,12 +78,9 @@ export async function GET(
   return NextResponse.json(updatedVehicle, { status: 200 });
 }*/
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(req: Request, context: { params: { id: string } }) {
   try {
-    const { id } = await params;
+    const id = context.params.id;
     if (!id) {
       return NextResponse.json(
         { message: "Vehicle ID is required" },
@@ -103,7 +123,7 @@ export async function DELETE(
   context: { params: { id: string } }
 ) {
   try {
-    const { id } = await context.params;
+    const id = context.params.id;
     // console.log("API: Delete request received for ID:", id);
 
     if (!id) {

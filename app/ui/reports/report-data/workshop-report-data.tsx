@@ -60,18 +60,20 @@ export default function WorkshopDeliveryData({ filters, data }: Props) {
               )}
             </div>
           </div>
-          <PDFDownloadLink
-            document={<WorkshopReportPDF data={data} filters={filters} />}
-            fileName={`workshop-report-${filters.startDate || ""}-${
-              filters.endDate || ""
-            }.pdf`}
-          >
-            {({ loading }) => (
-              <button className="border border-teal-600 text-teal-700 px-4 py-2 rounded hover:bg-teal-50 transition">
-                {loading ? "Preparing PDF..." : "Download Workshop Report"}
-              </button>
-            )}
-          </PDFDownloadLink>
+          {data && data.length > 0 && filters && (
+            <PDFDownloadLink
+              document={<WorkshopReportPDF data={data} filters={filters} />}
+              fileName={`workshop-report-${filters.startDate || ""}-${
+                filters.endDate || ""
+              }.pdf`}
+            >
+              {({ loading }) => (
+                <button className="border border-teal-600 text-teal-700 px-4 py-2 rounded hover:bg-teal-50 transition">
+                  {loading ? "Preparing PDF..." : "Download Workshop Report"}
+                </button>
+              )}
+            </PDFDownloadLink>
+          )}
         </div>
       </div>
       <table className="w-full table-auto border-collapse text-sm">
