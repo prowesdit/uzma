@@ -12,9 +12,6 @@ export const PrintVoucher = ({
   const handleDebitVoucherPrint = () => {
     const {
       bookingNumber,
-      customer,
-      customer_bin,
-      customer_address,
       vehicle,
       driver,
       pickup_address,
@@ -23,12 +20,9 @@ export const PrintVoucher = ({
       dropoff_dt,
       return_pickup_dt,
       return_dropoff_dt,
-      passenger_num,
-      payment_status,
-      booking_status,
       booking_type,
       note,
-      challan_data,
+      credit_amount,
       delivery_costs_data,
       created_at,
     } = voucherData;
@@ -156,10 +150,8 @@ export const PrintVoucher = ({
       <div class="voucher-meta">
         <div><span>ভাউচার নং:</span><span>${bookingNumber}</span></div>
         <div><span>তারিখ:</span><span>${formattedDate}</span></div>
-        <div><span>গ্রাহক:</span><span>${customer}</span></div>
         <div><span>গাড়ি নং:</span><span>${vehicle}</span></div>
         <div><span>ড্রাইভার:</span><span>${driver}</span></div>
-        <div><span>ভ্রমণকারীর সংখ্যা:</span><span>${passenger_num}</span></div>
         <div><span>ভাড়া ধরন:</span><span>${booking_type}</span></div>
       </div>
 
@@ -198,10 +190,7 @@ export const PrintVoucher = ({
       printWindow.document.close();
       printWindow.onload = () => {
         const tbody = printWindow.document.getElementById("voucher-body");
-        let totalFinal = 0;
-        let sumOfTotals = 0,
-          sumOfSDAmounts = 0,
-          sumOfVATAmounts = 0;
+        let totalCosts = 0;
 
         if (!delivery_costs_data || delivery_costs_data.length === 0) {
           const emptyRow = printWindow.document.createElement("tr");
@@ -220,14 +209,8 @@ export const PrintVoucher = ({
               index: number
             ) => {
               const row = printWindow.document.createElement("tr");
-              // const total = item.unit_price * item.quantity;
-              // const sdAmount = (total * item.supplementary_duty_rate) / 100;
-              // const vatAmount = (total * item.value_added_tax_rate) / 100;
-
-              // sumOfTotals += total;
-              // sumOfSDAmounts += sdAmount;
-              // sumOfVATAmounts += vatAmount;
-              // totalFinal += total + sdAmount + vatAmount;
+              
+              totalCosts += Number(item.cost);
 
               row.innerHTML = `
             <td>${index + 1}</td>
@@ -243,10 +226,25 @@ export const PrintVoucher = ({
         const totalRow = printWindow.document.createElement("tr");
         totalRow.innerHTML = `
             <td colspan="2"><strong>মোটঃ</strong></td>
-            <td></td>
+            <td>${totalCosts}</td>
             <td></td>
         `;
+        const creditRow = printWindow.document.createElement("tr");
+        creditRow.innerHTML = `
+            <td colspan="2"><strong>অগ্রিমঃ</strong></td>
+            <td>${credit_amount}</td>
+            <td></td>
+        `;
+        const devitRow = printWindow.document.createElement("tr");
+        devitRow.innerHTML = `
+            <td colspan="2"><strong>ডেভিটঃ</strong></td>
+            <td>${Number(credit_amount) - Number(totalCosts)}</td>
+            <td></td>
+        `;
+
         tbody?.appendChild(totalRow);
+        tbody?.appendChild(creditRow);
+        tbody?.appendChild(devitRow);
       };
       setTimeout(() => {
         printWindow.print();
@@ -259,28 +257,24 @@ export const PrintVoucher = ({
   const handleDeliveryChallanPrint = () => {
     const {
       bookingNumber,
+      challanNumber,
       customer,
       customer_bin,
       customer_address,
       vehicle,
       driver,
       pickup_address,
-      dropoff_address,
       pickup_dt,
       dropoff_dt,
       return_pickup_dt,
       return_dropoff_dt,
-      passenger_num,
-      payment_status,
-      booking_status,
       booking_type,
       note,
       challan_data,
       created_at,
     } = voucherData;
-    console.log("ch: ", challan_data, passenger_num);
 
-    const formattedDate = new Date(created_at).toLocaleDateString("bn-BD");
+    const formattedDate = new Date(pickup_dt).toLocaleDateString("bn-BD");
 
     const printWindow = window.open("", "", "width=900,height=650");
     const uniqueTitle = `Delivery_Challan_${bookingNumber}_${new Date()
@@ -451,13 +445,11 @@ export const PrintVoucher = ({
       <div><span>ক্রেতার বিআইএনঃ:</span><span>${customer_bin}</span></div>
       <div></div>
       <div><span>ক্রেতার ঠিকানা:</span><span>${customer_address}</span></div>
-      <div><span>চালানপত্র নম্বর:</span><span>${bookingNumber}</span></div>
+      <div><span>চালানপত্র নম্বর:</span><span>${challanNumber}</span></div>
       <div>
-        <span>সরবরাহের গন্তব্যস্থল:</span><span>${dropoff_address}</span>
+        <span>সরবরাহের গন্তব্যস্থল:</span><span>${customer_address}</span>
       </div>
-      <div><span>ইস্যুর তারিখ:</span><span>${formatDateToLocal(
-        pickup_dt
-      )}</span></div>
+      <div><span>ইস্যুর তারিখ:</span><span>${formattedDate}</span></div>
       <div><span>যানবাহনের প্রকৃতি ও নম্বর:</span><span>${vehicle}</span></div>
       <div><span>ইস্যুর সময়:</span><span>${formatDateToLocal(
         created_at

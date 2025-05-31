@@ -53,24 +53,17 @@ export type OfficeForm = {
 
 export type BookingForm = {
   id: string;
-  customer: string;
-  customer_bin: string;
-  customer_address: string;
   vehicle: string;
   driver: string;
   pickup_address: string;
-  dropoff_address: string;
   pickup_dt: string;
   dropoff_dt: string;
   return_pickup_dt: string;
   return_dropoff_dt: string;
-  passenger_num: string;
-  payment_status: string;
-  booking_status: string;
   booking_type: string;
   note: string;
   credit_amount: string;
-  challan_data: JSON;
+  deliveries: JSON;
   delivery_costs_data: JSON;
   created_at: string;
   updated_at: string;

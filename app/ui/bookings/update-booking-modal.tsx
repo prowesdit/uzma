@@ -19,6 +19,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { BookingState, updateBooking } from "@/app/lib/actions";
 import { formatDateInput } from "@/app/lib/utils";
+import DynamicTabsForm from "./dynamic-tab-form";
 
 interface ChallanData {
   item_detail: string;
@@ -41,6 +42,14 @@ interface DeliveryCostData {
   [key: string]: string | number; // This allows any additional dynamic fields
 }
 
+interface TabData {
+  id: string;
+  customer: string;
+  customer_bin: string;
+  customer_address: string;
+  challans: ChallanData[];
+}
+
 export function UpdateBookingModal({
   setShowUpdateBookingModal,
   booking,
@@ -54,39 +63,12 @@ export function UpdateBookingModal({
     booking.booking_type === "return" ? true : false
   );
 
-  // states and functions for challan data field
-  const [challans, setChallans] = useState<ChallanData[]>(
-    Array.isArray(booking?.challan_data) ? booking.challan_data : []
-  );
-  const handleItemChange = (
-    index: number,
-    field: string,
-    value: string | number
-  ): void => {
-    const newItems: ChallanData[] = [...challans];
-    newItems[index][field] = value;
-    setChallans(newItems);
-  };
-  const addItem = (): void => {
-    setChallans([
-      ...challans,
-      {
-        item_detail: "",
-        delivery_unit: "",
-        quantity: 0,
-        unit_price: 0,
-        total_price: 0,
-        supplementary_duty_rate: 0,
-        supplementary_duty: 0,
-        value_added_tax_rate: 0,
-        value_added_tax: 0,
-        total_price_with_tax: 0,
-      },
-    ]);
-  };
-  const removeItem = (index: number): void => {
-    setChallans((prevChallans) => prevChallans.filter((_, i) => i !== index));
-  };
+  // dynamic tab states
+    const [tabs, setTabs] = useState<TabData[]>(
+      Array.isArray(booking.deliveries) ? booking.deliveries : []
+    );
+  
+    const [activeTabId, setActiveTabId] = useState(tabs[0].id);
 
   // states and functions for delivery cost fields
   const [deliveryCosts, setDeliveryCosts] = useState<DeliveryCostData[]>(
@@ -149,7 +131,6 @@ export function UpdateBookingModal({
       const match = state.message.match(regex);
 
       if (match) {
-        console.log(match);
         setTimeout(() => {
           setIsLoading(false);
           setShowUpdateBookingModal(false);
@@ -189,98 +170,7 @@ export function UpdateBookingModal({
             <div className="p-6 overflow-y-auto">
               <form className="space-y-6" onSubmit={handleFormSubmit}>
                 <div className="flex flex-wrap lg:flex-nowrap gap-2">
-                  {/* Customer Name */}
-                  <div className="mb-4">
-                    <label
-                      htmlFor="customer"
-                      className="mb-2 block text-sm font-medium"
-                    >
-                      Customer Name
-                    </label>
-                    <div className="relative mt-2 rounded-md">
-                      <div className="relative">
-                        <input
-                          id="customer"
-                          name="customer"
-                          type="text"
-                          placeholder="Enter customer name"
-                          className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-                          defaultValue={
-                            state?.values?.customer ?? booking.customer
-                          }
-                          // required
-                        />
-                        <CurrencyDollarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
-                      </div>
-                    </div>
-                    {state.errors?.customer && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {state.errors.customer}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* customer BIN */}
-                  <div className="mb-4 ">
-                    <label
-                      htmlFor="customer_bin"
-                      className="mb-2 block text-sm font-medium"
-                    >
-                      Customer BIN
-                    </label>
-                    <div className="relative mt-2 rounded-md">
-                      <div className="relative">
-                        <input
-                          id="customer_bin"
-                          name="customer_bin"
-                          type="text"
-                          placeholder="Enter customer BIN"
-                          defaultValue={
-                            state?.values?.customer_bin ?? booking.customer_bin
-                          }
-                          className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-                          // required
-                        />
-                        <CurrencyDollarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
-                      </div>
-                    </div>
-                    {state.errors?.customer_bin && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {state.errors.customer_bin}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Customer Address */}
-                  <div className="mb-4">
-                    <label
-                      htmlFor="customer_address"
-                      className="mb-2 block text-sm font-medium"
-                    >
-                      Customer Address / Location
-                    </label>
-                    <div className="relative mt-2 rounded-md">
-                      <div className="relative">
-                        <textarea
-                          id="customer_address"
-                          name="customer_address"
-                          placeholder="Enter customer address"
-                          defaultValue={
-                            state?.values?.customer_address ??
-                            booking.customer_address
-                          }
-                          className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-                          cols={40}
-                        />
-                        <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
-                      </div>
-                    </div>
-                    {state.errors?.customer_address && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {state.errors.customer_address}
-                      </p>
-                    )}
-                  </div>
+                  
 
                   {/* Vehicle */}
                   <div className="mb-4">
@@ -341,9 +231,7 @@ export function UpdateBookingModal({
                       </p>
                     )}
                   </div>
-                </div>
 
-                <div className="flex flex-wrap lg:flex-nowrap gap-2">
                   {/* Pickup address */}
                   <div className="mb-4">
                     <label
@@ -374,38 +262,9 @@ export function UpdateBookingModal({
                       </p>
                     )}
                   </div>
-
-                  {/* Dropoff address */}
-                  <div className="mb-4">
-                    <label
-                      htmlFor="dropoff_address"
-                      className="mb-2 block text-sm font-medium"
-                    >
-                      Dropoff Address / Location
-                    </label>
-                    <div className="relative mt-2 rounded-md">
-                      <div className="relative">
-                        <textarea
-                          id="dropoff_address"
-                          name="dropoff_address"
-                          placeholder="Enter dropoff address"
-                          className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-                          cols={40}
-                          defaultValue={
-                            state?.values?.dropoff_address ??
-                            booking.dropoff_address
-                          }
-                        />
-                        <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
-                      </div>
-                    </div>
-                    {state.errors?.dropoff_address && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {state.errors.dropoff_address}
-                      </p>
-                    )}
-                  </div>
                 </div>
+
+
 
                 <div className="flex flex-wrap lg:flex-nowrap gap-2">
                   {/* Pickup date */}
@@ -469,111 +328,7 @@ export function UpdateBookingModal({
                   </div>
                 </div>
 
-                <div className="flex flex-wrap lg:flex-nowrap gap-2">
-                  {/* Num of Passengers */}
-                  <div className="mb-4">
-                    <label
-                      htmlFor="passenger_num"
-                      className="mb-2 block text-sm font-medium"
-                    >
-                      Num of Passengers
-                    </label>
-                    <div className="relative mt-2 rounded-md">
-                      <div className="relative">
-                        <input
-                          id="passenger_num"
-                          name="passenger_num"
-                          type="number"
-                          min={1}
-                          placeholder="Enter passenger number"
-                          className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-                          defaultValue={
-                            state?.values?.passenger_num ??
-                            booking.passenger_num
-                          }
-                          // required
-                        />
-                        <CurrencyDollarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
-                      </div>
-                    </div>
-                    {state.errors?.passenger_num && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {state.errors.passenger_num}
-                      </p>
-                    )}
-                  </div>
 
-                  {/* payment status */}
-                  <div className="mb-4">
-                    <label
-                      htmlFor="payment_status"
-                      className="mb-2 block text-sm font-medium"
-                    >
-                      Choose Payment Status
-                    </label>
-
-                    <div className="relative">
-                      <select
-                        id="payment_status"
-                        name="payment_status"
-                        className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-                        aria-describedby="payment_status-error"
-                        defaultValue={
-                          state?.values?.payment_status ??
-                          booking.payment_status
-                        }
-                      >
-                        <option value="" disabled>
-                          Select status
-                        </option>
-                        <option value="pending">Pending</option>
-                        <option value="paid">Paid</option>
-                      </select>
-                      <ShareIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
-                    </div>
-                    {state.errors?.payment_status && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {state.errors.payment_status}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* booking status */}
-                  <div className="mb-4">
-                    <label
-                      htmlFor="booking_status"
-                      className="mb-2 block text-sm font-medium"
-                    >
-                      Choose Booking Status
-                    </label>
-
-                    <div className="relative">
-                      <select
-                        id="booking_status"
-                        name="booking_status"
-                        className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-                        aria-describedby="booking_status-error"
-                        defaultValue={
-                          state?.values?.booking_status ??
-                          booking.booking_status
-                        }
-                      >
-                        <option value="" disabled>
-                          Select status
-                        </option>
-                        <option value="upcoming">Upcoming</option>
-                        <option value="pending">Pending</option>
-                        <option value="completed">Completed</option>
-                      </select>
-                      <ShareIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
-                    </div>
-                    {state.errors?.booking_status && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {state.errors.booking_status}
-                      </p>
-                    )}
-                  </div>
-                </div>
 
                 <div className="flex flex-wrap lg:flex-nowrap gap-2">
                   {/* booking type */}
@@ -740,203 +495,19 @@ export function UpdateBookingModal({
                   </div>
                 </div>
 
-                <div className="flex flex-wrap lg:flex-nowrap gap-2">
-                  {/* challan data */}
-                  <div className="mb-4 border-t pt-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Delivery Challan Data
-                    </label>
-                    {challans.map((challan, index) => (
-                      <div key={index} className="mb-6">
-                        <div className="flex flex-col lg:flex-row lg:items-end gap-4">
-                          {/* serial */}
-                          <div className="">
-                            <label
-                              htmlFor={`sl_${index}`}
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Sl.
-                            </label>
-                            <p className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm">
-                              {index + 1}
-                            </p>
-                          </div>
-                          {/* detail */}
-                          <div className="flex-1">
-                            <label
-                              htmlFor={`item_detail_${index}`}
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Detail of Item
-                            </label>
-                            <textarea
-                              id={`item_detail_${index}`}
-                              name={`item_detail_${index}`}
-                              value={challan.item_detail}
-                              onChange={(e) => {
-                                handleItemChange(
-                                  index,
-                                  "item_detail",
-                                  e.target.value
-                                );
-                              }}
-                              placeholder="Enter challan item detail"
-                              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
-                            />
-                          </div>
-                          {/* unit */}
-                          <div className="flex-1">
-                            <label
-                              htmlFor={`delivery_unit_${index}`}
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Delivery Unit
-                            </label>
-                            <input
-                              id={`delivery_unit_${index}`}
-                              name={`delivery_unit_${index}`}
-                              value={challan.delivery_unit}
-                              onChange={(e) =>
-                                handleItemChange(
-                                  index,
-                                  "delivery_unit",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Enter challan unit"
-                              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
-                            />
-                          </div>
-                          {/* quantity */}
-                          <div className="flex-1">
-                            <label
-                              htmlFor={`quantity_${index}`}
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Quantity
-                            </label>
-                            <input
-                              id={`quantity_${index}`}
-                              name={`quantity_${index}`}
-                              type="number"
-                              value={challan.quantity}
-                              onChange={(e) => {
-                                const newValue =
-                                  Number(e.target.value) >= 0
-                                    ? Number(e.target.value)
-                                    : 0;
-                                handleItemChange(index, "quantity", newValue);
-                              }}
-                              placeholder="Enter Quantity"
-                              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
-                            />
-                          </div>
-                          {/* unit price */}
-                          <div className="flex-1">
-                            <label
-                              htmlFor={`unit_price_${index}`}
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Unit Price (BDT)
-                            </label>
-                            <input
-                              id={`unit_price_${index}`}
-                              name={`unit_price_${index}`}
-                              type="number"
-                              value={challan.unit_price}
-                              onChange={(e) => {
-                                const newValue =
-                                  Number(e.target.value) >= 0
-                                    ? Number(e.target.value)
-                                    : 0;
-                                handleItemChange(index, "unit_price", newValue);
-                              }}
-                              placeholder="Enter Unit Price"
-                              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
-                            />
-                          </div>
-                          {/* supplementary duty rate */}
-                          <div className="flex-1">
-                            <label
-                              htmlFor={`supplementary_duty_rate_${index}`}
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              SD Rate (%)
-                            </label>
-                            <input
-                              id={`supplementary_duty_rate_${index}`}
-                              name={`supplementary_duty_rate_${index}`}
-                              type="number"
-                              value={challan.supplementary_duty_rate}
-                              onChange={(e) => {
-                                const newValue =
-                                  Number(e.target.value) >= 0
-                                    ? Number(e.target.value)
-                                    : 0;
-                                handleItemChange(
-                                  index,
-                                  "supplementary_duty_rate",
-                                  newValue
-                                );
-                              }}
-                              placeholder="Enter Supplementary Duty Rate (%)"
-                              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
-                            />
-                          </div>
-                          {/* value added tax rate */}
-                          <div className="flex-1">
-                            <label
-                              htmlFor={`value_added_tax_rate_${index}`}
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              VAT (%)
-                            </label>
-                            <input
-                              id={`value_added_tax_rate_${index}`}
-                              name={`value_added_tax_rate_${index}`}
-                              type="number"
-                              value={challan.value_added_tax_rate}
-                              onChange={(e) => {
-                                const newValue =
-                                  Number(e.target.value) >= 0
-                                    ? Number(e.target.value)
-                                    : 0;
-                                handleItemChange(
-                                  index,
-                                  "value_added_tax_rate",
-                                  newValue
-                                );
-                              }}
-                              placeholder="Enter VAT (%)"
-                              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
-                            />
-                          </div>
-
-                          <button
-                            type="button"
-                            className="ml-2 mt-6 text-red-300 hover:text-red-700"
-                            onClick={() => removeItem(index)}
-                          >
-                            <TrashIcon className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      className="mb-2 flex items-center space-x-1 text-sm font-medium text-teal-500 hover:text-teal-700"
-                      onClick={addItem}
-                    >
-                      <PlusIcon className="w-5 h-5" />{" "}
-                      <span>Add another item</span>
-                    </button>
-                    <input
-                      type="hidden"
-                      name="challan_data"
-                      value={JSON.stringify(challans)}
-                    />
-                  </div>
-                </div>
+                <div className="mt-5 ">
+            <DynamicTabsForm
+        tabs={tabs}
+        setTabs={setTabs}
+        activeTabId={activeTabId}
+        setActiveTabId={setActiveTabId}
+      />
+          <input
+              type="hidden"
+              name="deliveries"
+              value={JSON.stringify(tabs)}
+            />
+          </div>
 
                 <div className="flex flex-wrap lg:flex-nowrap gap-2">
                   {/* delivery cost */}

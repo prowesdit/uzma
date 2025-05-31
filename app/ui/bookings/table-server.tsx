@@ -12,6 +12,5 @@ export default async function BookingsTableServer({
 }) {
   const bookings = await fetchFilteredBookings(query, currentPage);
 
-
   return <BookingsTable bookings={bookings} />;
 }

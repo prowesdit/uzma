@@ -258,13 +258,11 @@ export async function fetchFilteredBookings(query: string, currentPage: number) 
     const bookings = await collection
       .find({
         $or: [
-          { customer: { $regex: query, $options: "i" } },
+          // { customer: { $regex: query, $options: "i" } },
           { vehicle: { $regex: query, $options: "i" } },
           { driver: { $regex: query, $options: "i" } },
           { pickup_address: { $regex: query, $options: "i" } },
-          { dropoff_address: { $regex: query, $options: "i" } },
-          { payment_status: { $regex: query, $options: "i" } },
-          { booking_status: { $regex: query, $options: "i" } },
+          // { dropoff_address: { $regex: query, $options: "i" } },
           { booking_type: { $regex: query, $options: "i" } },
           { note: { $regex: query, $options: "i" } },
         ],
@@ -276,29 +274,22 @@ export async function fetchFilteredBookings(query: string, currentPage: number) 
 
     return bookings.map(booking => ({
       id: booking._id.toString(), // ObjectId to string
-      customer: booking.customer,
-      customer_bin: booking.customer_bin,
-      customer_address: booking.customer_address,
       vehicle: booking.vehicle,
       driver: booking.driver,
       pickup_address: booking.pickup_address,
-      dropoff_address: booking.dropoff_address,
       pickup_dt: booking.pickup_dt,
       dropoff_dt: booking.dropoff_dt,
       return_pickup_dt: booking.return_pickup_dt,
       return_dropoff_dt: booking.return_dropoff_dt,
-      passenger_num: booking.passenger_num,
-      payment_status: booking.payment_status,
-      booking_status: booking.booking_status,
       booking_type: booking.booking_type,
       note: booking.note,
       credit_amount: booking.credit_amount,
-      challan_data: booking.challan_data,
+      deliveries: booking.deliveries,
       delivery_costs_data: booking.delivery_costs_data,
       created_at: booking.created_at,
       updated_at: booking.updated_at,
       updated_by: booking.updated_by,
-      _id: undefined, // optional: hide the original _id if you want clean objects
+      _id: undefined, // optional
     }));
   } catch (error) {
     console.error("Database Error:", error);

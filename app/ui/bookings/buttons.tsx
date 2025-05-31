@@ -22,7 +22,7 @@ export function CreateBooking() {
   );
 }
 
-export function PrintDeliveryChallanButton({ booking }: { booking: any }) {
+export function PrintDeliveryChallanButton({ delivery, booking }: { delivery: any, booking: any }) {
   const [loading, setLoading] = useState(false);
   const handlePrintingFromButton = () => {
     setLoading(true);
@@ -30,23 +30,20 @@ export function PrintDeliveryChallanButton({ booking }: { booking: any }) {
     // Initialize voucherData object
     const voucherData: any = {
       bookingNumber: booking.id,
-      customer: booking.customer,
-      customer_bin: booking.customer_bin,
-      customer_address: booking.customer_address,
+      challanNumber: delivery.id,
+      customer: delivery.customer,
+      customer_bin: delivery.customer_bin,
+      customer_address: delivery.customer_address,
       vehicle: booking.vehicle,
       driver: booking.driver,
       pickup_address: booking.pickup_address,
-      dropoff_address: booking.dropoff_address,
       pickup_dt: booking.pickup_dt,
       dropoff_dt: booking.dropoff_dt,
       return_pickup_dt: booking.return_pickup_dt,
       return_dropoff_dt: booking.return_dropoff_dt,
-      passenger_num: booking.passenger_num,
-      payment_status: booking.payment_status,
-      booking_status: booking.booking_status,
       booking_type: booking.booking_type,
       note: booking.note,
-      challan_data: booking.challan_data,
+      challan_data: delivery.challans,
       created_at: booking.created_at,
     };
 
@@ -57,12 +54,12 @@ export function PrintDeliveryChallanButton({ booking }: { booking: any }) {
   };
 
   return (
-    <div className="rounded-md border p-2 hover:bg-gray-100 ">
+    <div className="rounded-md p-1 hover:bg-gray-100 cursor-pointer">
       {loading ? (
         <p>printing...</p>
       ) : (
         <PrinterIcon
-          className="w-5 "
+          className="w-4 "
           onClick={handlePrintingFromButton}
           title="Print/Save Delivery Challan"
         />
@@ -76,26 +73,23 @@ export function PrintDevitVoucherButton({ booking }: { booking: any }) {
   const handlePrintingFromButton = () => {
     setLoading(true);
 
+    const dropoffAddresses = booking.deliveries.map((delivery:any) => `${delivery.customer_address} (${delivery.customer})`).join(' - ');
+
+
     // Initialize voucherData object
     const voucherData: any = {
       bookingNumber: booking.id,
-      customer: booking.customer,
-      customer_bin: booking.customer_bin,
-      customer_address: booking.customer_address,
       vehicle: booking.vehicle,
       driver: booking.driver,
       pickup_address: booking.pickup_address,
-      dropoff_address: booking.dropoff_address,
+      dropoff_address: dropoffAddresses,
       pickup_dt: booking.pickup_dt,
       dropoff_dt: booking.dropoff_dt,
       return_pickup_dt: booking.return_pickup_dt,
       return_dropoff_dt: booking.return_dropoff_dt,
-      passenger_num: booking.passenger_num,
-      payment_status: booking.payment_status,
-      booking_status: booking.booking_status,
       booking_type: booking.booking_type,
       note: booking.note,
-      challan_data: booking.challan_data,
+      credit_amount: booking.credit_amount,
       delivery_costs_data: booking.delivery_costs_data,
       created_at: booking.created_at,
     };

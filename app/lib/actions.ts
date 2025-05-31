@@ -94,7 +94,7 @@ const SingleChallanDataSchema = z.object({
     .gt(0, { message: "Unit price must be at least 1." }),
   supplementary_duty_rate: z.coerce
     .number()
-    .gt(0, { message: "Supplementary Duty Rate must be at least 1." }),
+    .gte(0, { message: "Supplementary Duty Rate must be at least 1." }),
   value_added_tax_rate: z.coerce
     .number()
     .gt(0, { message: "Value Added Tax must be at least 1." }),
@@ -112,8 +112,8 @@ const SingleDeliveryCostDataSchema = z.object({
     .gte(0, { message: "Cost must be at least 0." }),
 });
 
-const BookingFormSchema = z.object({
-  id: z.string(),
+const SingleDeliveryDataSchema = z.object({
+  challans: z.array(SingleChallanDataSchema),
   customer: z.string({
     invalid_type_error: "Please provide customer name.",
   }).min(1, "Please provide customer name."),
@@ -123,6 +123,11 @@ const BookingFormSchema = z.object({
   customer_address: z.string({
     invalid_type_error: "Please provide customer address.",
   }).optional(),
+  id: z.string().optional()
+});
+
+const BookingFormSchema = z.object({
+  id: z.string(),
   vehicle: z.string({
     invalid_type_error: "Please provide vehicle info.",
   }).min(1, "Please provide vehicle info."),
@@ -132,9 +137,6 @@ const BookingFormSchema = z.object({
   pickup_address: z.string({
     invalid_type_error: "Please provide pickup address.",
   }).min(1, "Please provide pickup address."),
-  dropoff_address: z.string({
-    invalid_type_error: "Please provide dropoff address.",
-  }).min(1, "Please provide dropoff address."),
   pickup_dt: z.string({
     invalid_type_error: "Please provide pickup date & time.",
   }).min(1, "Please provide pickup date & time."),
@@ -143,36 +145,27 @@ const BookingFormSchema = z.object({
   }).optional(),
   return_pickup_dt: z.string().optional(),
   return_dropoff_dt: z.string().optional(),
-  passenger_num: z.coerce.number({
-    invalid_type_error: "Please provide number of passengers.",
-  }).gt(0, { message: "Number of passengers must be at least 1." }),
-  payment_status: z.enum(["pending", "paid"], { invalid_type_error: "Please provide payment status." }),
-  booking_status: z.enum(["upcoming", "pending", "completed"], { invalid_type_error: "Please provide booking status." }),
-  booking_type: z.enum(["oneway", "return"], { invalid_type_error: "Please provide booking type." }),
+  booking_type: z.enum(["oneway", "return"], { invalid_type_error: "Please provide booking type." }).optional(),
   note: z.string().optional(),
   credit_amount: z.coerce
     .number()
     .gte(0, { message: "Credit amount must be at least 0." }),
-  challan_data: z.array(SingleChallanDataSchema),
   delivery_costs_data: z.array(SingleDeliveryCostDataSchema).optional(),
+  deliveries: z.array(SingleDeliveryDataSchema).optional(),
 });
 
 export type BookingState = {
   errors?: {
-    customer?: string[];
-    customer_bin?: string[];
-    customer_address?: string[];
+
     vehicle?: string[];
     driver?: string[];
     pickup_address?: string[];
-    dropoff_address?: string[];
+
     pickup_dt?: string[];
     dropoff_dt?: string[];
     return_pickup_dt?: string[];
     return_dropoff_dt?: string[];
-    passenger_num?: string[];
-    payment_status?: string[];
-    booking_status?: string[];
+
     booking_type?: string[];
     note?: string[];
     credit_amount?: string[];
@@ -181,20 +174,16 @@ export type BookingState = {
   message?: string | null;
   voucherData?: object;
   values?: {
-    customer?: string;
-    customer_bin?: string;
-    customer_address?: string;
+
     vehicle?: string;
     driver?: string;
     pickup_address?: string;
-    dropoff_address?: string;
+
     pickup_dt?: string;
     dropoff_dt?: string;
     return_pickup_dt?: string;
     return_dropoff_dt?: string;
-    passenger_num?: string;
-    payment_status?: string;
-    booking_status?: string;
+
     booking_type?: string;
     note?: string;
     credit_amount?: string;
@@ -411,24 +400,17 @@ export async function deleteOffice(id: string) {
 const CreateBooking = BookingFormSchema.omit({ id: true });
 export async function createBooking(prevState: BookingState, formData: FormData) {
   const validatedFields = CreateBooking.safeParse({
-    customer: formData.get("customer"),
-    customer_bin: formData.get("customer_bin"),
-    customer_address: formData.get("customer_address"),
     vehicle: formData.get("vehicle"),
     driver: formData.get("driver"),
     pickup_address: formData.get("pickup_address"),
-    dropoff_address: formData.get("dropoff_address"),
     pickup_dt: formData.get("pickup_dt"),
     dropoff_dt: formData.get("dropoff_dt"),
     return_pickup_dt: formData.get("return_pickup_dt") || undefined,
     return_dropoff_dt: formData.get("return_dropoff_dt") || undefined,
-    passenger_num: formData.get("passenger_num"),
-    payment_status: formData.get("payment_status"),
-    booking_status: formData.get("booking_status"),
     booking_type: formData.get("booking_type"),
     note: formData.get("note") || undefined,
     credit_amount: formData.get("credit_amount"),
-    challan_data: JSON.parse(formData.get("challan_data") as string)
+    deliveries: JSON.parse(formData.get("deliveries") as string),
   });
 
   if (!validatedFields.success) {
@@ -437,50 +419,34 @@ export async function createBooking(prevState: BookingState, formData: FormData)
       errors: validatedFields.error.flatten().fieldErrors,
       message: "Missing Fields. Failed to Create Booking.",
       values: {
-        customer: formData.get("customer")?.toString() || "",
-        customer_bin: formData.get("customer_bin")?.toString() || "",
-        customer_address: formData.get("customer_address")?.toString() || "",
         vehicle: formData.get("vehicle")?.toString() || "",
         driver: formData.get("driver")?.toString() || "",
         pickup_address: formData.get("pickup_address")?.toString() || "",
-        dropoff_address: formData.get("dropoff_address")?.toString() || "",
         pickup_dt: formData.get("pickup_dt")?.toString() || "",
         dropoff_dt: formData.get("dropoff_dt")?.toString() || "",
         return_pickup_dt: formData.get("return_pickup_dt")?.toString() || undefined,
         return_dropoff_dt: formData.get("return_dropoff_dt")?.toString() || undefined,
-        passenger_num: formData.get("passenger_num")?.toString() || "",
-        payment_status: formData.get("payment_status")?.toString() || "",
-        booking_status: formData.get("booking_status")?.toString() || "",
         booking_type: formData.get("booking_type")?.toString() || "",
         note: formData.get("note")?.toString() || undefined,
         credit_amount: formData.get("credit_amount")?.toString(),
-        challan_data: JSON.parse(formData.get("challan_data") as string),
+        deliveries: JSON.parse(formData.get("deliveries") as string),
       }
     };
   }
 
   const {
-    customer,
-    customer_bin,
-    customer_address,
     vehicle,
     driver,
     pickup_address,
-    dropoff_address,
     pickup_dt,
     dropoff_dt,
     return_pickup_dt,
     return_dropoff_dt,
-    passenger_num,
-    payment_status,
-    booking_status,
     booking_type,
     note,
     credit_amount,
-    challan_data,
+    deliveries,
   } = validatedFields.data;
-  console.log("data: ", 
-   credit_amount, typeof credit_amount)
 
   try {
     const session = await auth();
@@ -495,24 +461,17 @@ export async function createBooking(prevState: BookingState, formData: FormData)
     const collection = db.collection("bookings");
 
     const ddd = await collection.insertOne({
-      customer,
-      customer_bin,
-      customer_address,
       vehicle,
       driver,
       pickup_address,
-      dropoff_address,
       pickup_dt: new Date(pickup_dt),
       dropoff_dt: dropoff_dt ? new Date(dropoff_dt) : null,
       return_pickup_dt: return_pickup_dt ? new Date(return_pickup_dt) : null,
       return_dropoff_dt: return_dropoff_dt ? new Date(return_dropoff_dt) : null,
-      passenger_num,
-      payment_status,
-      booking_status,
       booking_type,
       note: note || "",
       credit_amount,
-      challan_data,
+      deliveries,
       created_at: new Date(),
       created_by: created_by,
       updated_at: null,
@@ -521,30 +480,23 @@ export async function createBooking(prevState: BookingState, formData: FormData)
 
     const bookingId = ddd.insertedId.toString();
 
-
     let voucherData = {
       bookingNumber: bookingId,
-      customer,
-      customer_bin,
-      customer_address,
       vehicle,
       driver,
       pickup_address,
-      dropoff_address,
       pickup_dt: new Date(pickup_dt),
       dropoff_dt: dropoff_dt ? new Date(dropoff_dt) : null,
       return_pickup_dt: return_pickup_dt ? new Date(return_pickup_dt) : null,
       return_dropoff_dt: return_dropoff_dt ? new Date(return_dropoff_dt) : null,
-      passenger_num,
-      payment_status,
-      booking_status,
       booking_type,
       note: note || "",
       credit_amount,
-      challan_data,
+      deliveries,
       created_at: new Date(),
     };
-    return { message: "Booking created successfully.", voucherData};
+    return { message: "Booking created successfully.", voucherData };
+    // return { message: "Booking created successfully."};
   } catch (error) {
     console.log(error);
     return { message: "Database Error: Failed to Create Booking." };
@@ -558,24 +510,17 @@ export async function updateBooking(
   formData: FormData
 ) {
   const validatedFields = UpdateBooking.safeParse({
-    customer: formData.get("customer"),
-    customer_bin: formData.get("customer_bin")?.toString() || "",
-    customer_address: formData.get("customer_address")?.toString() || "",
     vehicle: formData.get("vehicle"),
     driver: formData.get("driver"),
     pickup_address: formData.get("pickup_address"),
-    dropoff_address: formData.get("dropoff_address"),
     pickup_dt: formData.get("pickup_dt"),
     dropoff_dt: formData.get("dropoff_dt"),
     return_pickup_dt: formData.get("return_pickup_dt") || undefined,
     return_dropoff_dt: formData.get("return_dropoff_dt") || undefined,
-    passenger_num: formData.get("passenger_num"),
-    payment_status: formData.get("payment_status"),
-    booking_status: formData.get("booking_status"),
     booking_type: formData.get("booking_type"),
     note: formData.get("note") || undefined,
     credit_amount: formData.get("credit_amount")?.toString(),
-    challan_data: JSON.parse(formData.get("challan_data") as string),
+    deliveries: JSON.parse(formData.get("deliveries") as string),
     delivery_costs_data: JSON.parse(formData.get("delivery_costs_data") as string),
   });
 
@@ -585,48 +530,34 @@ export async function updateBooking(
       errors: validatedFields.error.flatten().fieldErrors,
       message: "Missing Fields. Failed to Update Booking.",
       values: {
-        customer: formData.get("customer")?.toString() || "",
-        customer_bin: formData.get("customer_bin")?.toString() || "",
-        customer_address: formData.get("customer_address")?.toString() || "",
         vehicle: formData.get("vehicle")?.toString() || "",
         driver: formData.get("driver")?.toString() || "",
         pickup_address: formData.get("pickup_address")?.toString() || "",
-        dropoff_address: formData.get("dropoff_address")?.toString() || "",
         pickup_dt: formData.get("pickup_dt")?.toString() || "",
         dropoff_dt: formData.get("dropoff_dt")?.toString() || "",
         return_pickup_dt: formData.get("return_pickup_dt")?.toString() || undefined,
         return_dropoff_dt: formData.get("return_dropoff_dt")?.toString() || undefined,
-        passenger_num: formData.get("passenger_num")?.toString() || "",
-        payment_status: formData.get("payment_status")?.toString() || "",
-        booking_status: formData.get("booking_status")?.toString() || "",
         booking_type: formData.get("booking_type")?.toString() || "",
         note: formData.get("note")?.toString() || undefined,
         credit_amount: formData.get("credit_amount")?.toString(),
-        challan_data: JSON.parse(formData.get("challan_data") as string),
+        deliveries: JSON.parse(formData.get("deliveries") as string),
         delivery_costs_data: JSON.parse(formData.get("delivery_costs_data") as string),
       }
     };
   }
 
   const {
-    customer,
-    customer_bin,
-    customer_address,
     vehicle,
     driver,
     pickup_address,
-    dropoff_address,
     pickup_dt,
     dropoff_dt,
     return_pickup_dt,
     return_dropoff_dt,
-    passenger_num,
-    payment_status,
-    booking_status,
     booking_type,
     note,
     credit_amount,
-    challan_data,
+    deliveries,
     delivery_costs_data,
   } = validatedFields.data;
 
@@ -646,24 +577,18 @@ export async function updateBooking(
       { _id: new ObjectId(id) },
       {
         $set: {
-          customer,
-          customer_bin,
-          customer_address,
+
           vehicle,
           driver,
           pickup_address,
-          dropoff_address,
           pickup_dt,
           dropoff_dt,
           return_pickup_dt,
           return_dropoff_dt,
-          passenger_num,
-          payment_status,
-          booking_status,
           booking_type,
           note,
           credit_amount,
-          challan_data,
+          deliveries,
           delivery_costs_data,
           updated_at: new Date(),
           updated_by: updated_by,
@@ -713,8 +638,8 @@ export async function createInventory(prevState: InventoryState, formData: FormD
     const client = await clientPromise;
     const db = client.db("uzma");
 
-     // Check for duplicate part
-     const duplicate = await db.collection("parts").findOne({
+    // Check for duplicate part
+    const duplicate = await db.collection("parts").findOne({
       name, type, condition,
     });
 
